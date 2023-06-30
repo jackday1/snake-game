@@ -26,3 +26,11 @@ export const login = async (data) => {
 
   return token;
 };
+
+export const getMe = async (id) => {
+  const user = await get({ id });
+  return {
+    id: user.id,
+    username: user.username,
+  };
+};
