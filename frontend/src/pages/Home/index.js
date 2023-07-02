@@ -23,6 +23,8 @@ const Home = () => {
       console.log({ id });
       navigate(`/games/${id}`);
     });
+
+    return socketRef.current.disconnect();
   }, []);
 
   const create = () => {
