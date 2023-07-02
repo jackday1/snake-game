@@ -24,7 +24,7 @@ class Snake {
     this.body = scene.add.group();
     this.head = this.body.create(x * size, y * size, 'body');
     this.head.setOrigin(0);
-    this.alive = true;
+    this.alive = false;
     this.speed = 1000 / gameConfigs.speed; // default is 100 === 1s will run 10 steps
     this.moveTime = 0;
     this.tail = new Phaser.Geom.Point(x, y);
@@ -60,6 +60,7 @@ export class SnakeScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-ENTER', () => {
       if (!this.snake.alive) {
         this.reset();
+        this.snake.alive = true;
         this.game.events.emit(Events.ResetScore);
         this.game.events.emit(Events.GameStart);
       }
@@ -102,10 +103,10 @@ export class SnakeScene extends Phaser.Scene {
     ) {
       this.grow();
       this.eat();
-      //  For every 5 items of food eaten we'll increase the snake speed a little
-      if (this.snake.speed > 20 && this.total % 5 === 0) {
-        this.snake.speed -= 5;
-      }
+      // //  For every 5 items of food eaten we'll increase the snake speed a little
+      // if (this.snake.speed > 20 && this.total % 5 === 0) {
+      //   this.snake.speed -= 5;
+      // }
 
       this.game.events.emit(Events.IncreaseScore, this.total);
       return true;

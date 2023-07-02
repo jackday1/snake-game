@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Box, Button, Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import Phaser from 'phaser';
 
 import SnakeScene from './SnakeScene';
@@ -8,7 +8,7 @@ import gameConfigs from '../../../configs/game.config';
 
 const GameView = () => {
   const [score, setScore] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
     const config = {
@@ -57,7 +57,7 @@ const GameView = () => {
       <Box m="auto" textAlign="center">
         <Box display="flex" alignItems="center" justifyContent="center" gap={2}>
           <Typography>
-            {score} {!isPlaying && ' Press Enter to play again'}
+            {score} {!isPlaying && ' Press Enter to play'}
           </Typography>
         </Box>
         <Box id="game" className="game-screen" />
