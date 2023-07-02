@@ -25,7 +25,7 @@ class Snake {
     this.head = this.body.create(x * size, y * size, 'body');
     this.head.setOrigin(0);
     this.alive = true;
-    this.speed = 50;
+    this.speed = 1000 / gameConfigs.speed; // default is 100 === 1s will run 10 steps
     this.moveTime = 0;
     this.tail = new Phaser.Geom.Point(x, y);
     this.heading = Directions.Right;
