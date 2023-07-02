@@ -10,7 +10,7 @@ const file = join(__dirname, 'db.json');
 
 // Configure lowdb to write data to JSON file
 const adapter = new JSONFile(file);
-const defaultData = { users: [] };
+const defaultData = { users: [], games: [] };
 const db = new Low(adapter, defaultData);
 
 export default db;

@@ -34,3 +34,12 @@ export const getMe = async (id) => {
     username: user.username,
   };
 };
+
+export const getUserFromToken = (token) => {
+  if (!token) throw new Error('Bad credential');
+
+  jwt.verify(token, JWT_SECRET_KEY);
+  const user = jwt.decode(token);
+
+  return user;
+};
