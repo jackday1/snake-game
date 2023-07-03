@@ -86,9 +86,10 @@ export const startGame = async (data) => {
 };
 
 export const changeDirection = async (data) => {
-  console.log('change direction', data);
-  const { userId, gameId, direction, timestamp, position } = data;
   const now = Date.now();
+  const { userId, gameId, direction, timestamp, position } = data;
+  console.log('change direction', { ...data, now });
+
   if (timestamp > now) throw new Error('Bad request');
   if (timestamp < now - 200) throw new Error('Bad request'); // allow 200ms on delay between client and server
   if (!Object.values(Directions).includes(direction))
