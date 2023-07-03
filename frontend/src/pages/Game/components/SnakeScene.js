@@ -23,33 +23,17 @@ class Snake {
   tail;
   heading;
   direction;
-  startDirectionTime;
-  startDirectionX;
-  startDirectionY;
-  constructor(
-    scene,
-    x,
-    y,
-    size,
-    heading,
-    direction,
-    startDirectionTime,
-    startDirectionX,
-    startDirectionY
-  ) {
+  constructor(scene, x, y, size, heading, direction) {
     this.headPosition = new Phaser.Geom.Point(x, y);
     this.body = scene.add.group();
     this.head = this.body.create(x * size, y * size, 'body');
     this.head.setOrigin(0);
     this.alive = false;
-    this.speed = 1000 / gameConfigs.speed; // default is 100 === 1s will run 10 steps
+    this.speed = 1000 / gameConfigs.speed; // default is 50 === 1s will run 20 steps
     this.moveTime = 0;
     this.tail = new Phaser.Geom.Point(x, y);
     this.heading = heading;
     this.direction = direction;
-    this.startDirectionTime = startDirectionTime;
-    this.startDirectionX = startDirectionX;
-    this.startDirectionY = startDirectionY;
   }
 }
 
@@ -60,6 +44,7 @@ export class SnakeScene extends Phaser.Scene {
   snake;
   food;
   gameId;
+  foodId;
 
   constructor() {
     super({
@@ -81,40 +66,29 @@ export class SnakeScene extends Phaser.Scene {
         snakes[0].head.y,
         this.size,
         snakes[0].direction,
-        snakes[0].direction,
-        snakes[0].startDirectionTime,
-        snakes[0].head.x,
-        snakes[0].head.y
+        snakes[0].direction
       );
       this.food = new Food(this, foods[0].x, foods[0].y, this.size);
-      this.food.id = foods[0].id;
+      this.foodId = foods[0].id;
       this.children.add(this.food);
 
       // this.reset();
       this.snake.alive = true;
-      this.game.events.emit(Events.ResetScore);
+      this.game.events.emit(Events.IncreaseScore, snakes[0].length);
       this.game.events.emit(Events.GameStart);
-    });
-
-    this.socket.on('direction-changed', (data) => {
-      console.log({ data });
-      const { snake } = data;
-      const { direction, startDirectionTime } = snake;
-      this.snake.heading = direction;
-      this.snake.direction = direction;
-      this.snake.startDirectionTime = startDirectionTime;
-      this.snake.startDirectionX = snake.head.x;
-      this.snake.startDirectionY = snake.head.y;
-      console.log(snake.head.x, snake.head.y);
     });
 
     this.socket.on('ate', (data) => {
       const { snake, newFood } = data;
       console.log('ate', { snake, newFood });
       this.game.events.emit(Events.IncreaseScore, snake.length);
-      this.food = new Food(this, newFood.x, newFood.y, this.size);
-      this.food.id = newFood.id;
+      this.food.setPosition(
+        newFood.x * this.size + this.size / 2,
+        newFood.y * this.size + this.size / 2
+      );
+      this.foodId = newFood.id;
       this.children.add(this.food);
+      this.grow();
     });
   }
 
@@ -151,7 +125,9 @@ export class SnakeScene extends Phaser.Scene {
   eat() {
     // this.total = this.total + 1;
     console.log('eat', this.food);
-    this.socket.emit('eat', { gameId: this.gameId, foodId: this.food.id });
+    this.socket.emit('eat', { gameId: this.gameId, foodId: this.foodId });
+    this.food.setPosition(-10, -10);
+    this.foodId = null;
   }
 
   snakeUpdate(time) {
@@ -205,10 +181,15 @@ export class SnakeScene extends Phaser.Scene {
       this.snake.direction === Directions.Up ||
       this.snake.direction === Directions.Down
     ) {
-      // this.snake.heading = Directions.Left;
+      this.snake.heading = Directions.Left;
       this.socket.emit('change-direction', {
         gameId: this.gameId,
         direction: Directions.Left,
+        timestamp: Date.now(),
+        position: {
+          x: this.snake.headPosition.x,
+          y: this.snake.headPosition.y,
+        },
       });
     }
   }
@@ -218,10 +199,15 @@ export class SnakeScene extends Phaser.Scene {
       this.snake.direction === Directions.Up ||
       this.snake.direction === Directions.Down
     ) {
-      // this.snake.heading = Directions.Right;
+      this.snake.heading = Directions.Right;
       this.socket.emit('change-direction', {
         gameId: this.gameId,
         direction: Directions.Right,
+        timestamp: Date.now(),
+        position: {
+          x: this.snake.headPosition.x,
+          y: this.snake.headPosition.y,
+        },
       });
     }
   }
@@ -231,10 +217,15 @@ export class SnakeScene extends Phaser.Scene {
       this.snake.direction === Directions.Left ||
       this.snake.direction === Directions.Right
     ) {
-      // this.snake.heading = Directions.Up;
+      this.snake.heading = Directions.Up;
       this.socket.emit('change-direction', {
         gameId: this.gameId,
         direction: Directions.Up,
+        timestamp: Date.now(),
+        position: {
+          x: this.snake.headPosition.x,
+          y: this.snake.headPosition.y,
+        },
       });
     }
   }
@@ -244,13 +235,16 @@ export class SnakeScene extends Phaser.Scene {
       this.snake.direction === Directions.Left ||
       this.snake.direction === Directions.Right
     ) {
-      // this.snake.heading = Directions.Down;
+      this.snake.heading = Directions.Down;
       this.socket.emit('change-direction', {
         gameId: this.gameId,
         direction: Directions.Down,
+        timestamp: Date.now(),
+        position: {
+          x: this.snake.headPosition.x,
+          y: this.snake.headPosition.y,
+        },
       });
-
-      console.log(this.snake.headPosition.x, this.snake.headPosition.y);
     }
   }
 
@@ -258,45 +252,32 @@ export class SnakeScene extends Phaser.Scene {
     if (!this.snake.alive) {
       return false;
     }
-    const now = Date.now();
-    let distance =
-      ((now - this.snake.startDirectionTime) * gameConfigs.speed) / 1000;
-    distance = Math.floor(distance);
-    console.log({
-      distance,
-      startX: this.snake.startDirectionX,
-      startY: this.snake.startDirectionY,
-      direction: this.snake.heading,
-    });
+
     switch (this.snake.heading) {
       case Directions.Left:
-        distance = distance % maxX;
         this.snake.headPosition.x = Phaser.Math.Wrap(
-          this.snake.startDirectionX - distance,
+          this.snake.headPosition.x - 1,
           0,
           gameConfigs.width / this.size
         );
         break;
       case Directions.Right:
-        distance = distance % maxX;
         this.snake.headPosition.x = Phaser.Math.Wrap(
-          this.snake.startDirectionX + distance,
+          this.snake.headPosition.x + 1,
           0,
           gameConfigs.width / this.size
         );
         break;
       case Directions.Up:
-        distance = distance % maxY;
         this.snake.headPosition.y = Phaser.Math.Wrap(
-          this.snake.startDirectionY - distance,
+          this.snake.headPosition.y - 1,
           0,
           gameConfigs.height / this.size
         );
         break;
       case Directions.Down:
-        distance = distance % maxY;
         this.snake.headPosition.y = Phaser.Math.Wrap(
-          this.snake.startDirectionY + distance,
+          this.snake.headPosition.y + 1,
           0,
           gameConfigs.height / this.size
         );
@@ -351,7 +332,7 @@ export class SnakeScene extends Phaser.Scene {
     if (this.snakeUpdate(time)) {
       //  If the snake updated, we need to check for collision against food
       if (this.collideWithFood(this.food)) {
-        // this.repositionFood();
+        this.repositionFood();
       }
     }
   }
@@ -375,28 +356,28 @@ export class SnakeScene extends Phaser.Scene {
     this.updateGrid(testGrid);
 
     //  Purge out false positions
-    let validLocations = [];
+    // let validLocations = [];
 
-    for (let y = 0; y < gameConfigs.height / this.size; y++) {
-      for (let x = 0; x < gameConfigs.width / this.size; x++) {
-        if (testGrid[y][x] === true) {
-          //  Is this position valid for food? If so, add it here ...
-          validLocations.push({ x: x, y: y });
-        }
-      }
-    }
+    // for (let y = 0; y < gameConfigs.height / this.size; y++) {
+    //   for (let x = 0; x < gameConfigs.width / this.size; x++) {
+    //     if (testGrid[y][x] === true) {
+    //       //  Is this position valid for food? If so, add it here ...
+    //       validLocations.push({ x: x, y: y });
+    //     }
+    //   }
+    // }
 
-    if (validLocations.length > 0) {
-      //  Pick a random food position
-      const pos = Phaser.Math.RND.pick(validLocations);
-      this.food.setPosition(
-        pos.x * this.size + this.size / 2,
-        pos.y * this.size + this.size / 2
-      );
-      return true;
-    } else {
-      return false;
-    }
+    // if (validLocations.length > 0) {
+    //   //  Pick a random food position
+    //   const pos = Phaser.Math.RND.pick(validLocations);
+    //   this.food.setPosition(
+    //     pos.x * this.size + this.size / 2,
+    //     pos.y * this.size + this.size / 2
+    //   );
+    //   return true;
+    // } else {
+    //   return false;
+    // }
   }
 }
 

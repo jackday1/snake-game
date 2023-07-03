@@ -7,6 +7,6 @@ const { BACKEND_URL } = environments;
 
 export const createSocketInstance = () =>
   io(BACKEND_URL, {
-    // transports: ['websocket'],
+    transports: ['websocket'],
     query: { token: localStorage.getItem(ACCESS_TOKEN) },
   });
