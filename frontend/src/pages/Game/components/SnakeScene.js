@@ -319,6 +319,7 @@ export class SnakeScene extends Phaser.Scene {
 
   update(time, delta) {
     if (!this.snake) return;
+    if (time < this.snake.moveTime) return;
 
     if (this.cursors.left?.isDown) {
       this.faceLeft();
