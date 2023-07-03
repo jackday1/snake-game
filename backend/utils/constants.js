@@ -4,3 +4,9 @@ export const Directions = {
   Up: 'Up',
   Down: 'Down',
 };
+
+export const GameStatuses = {
+  Pending: 'Pending',
+  Playing: 'Playing',
+  Ended: 'Ended',
+};

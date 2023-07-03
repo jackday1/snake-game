@@ -1,30 +1,24 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import socketIOClient from 'socket.io-client';
 import { Box, Button } from '@mui/material';
 
-import { ACCESS_TOKEN } from '../../utils/constants';
-
-const host = 'http://localhost:8888';
+import { createSocketInstance } from '../../services/socket.service';
 
 const Home = () => {
   const navigate = useNavigate();
   const socketRef = useRef();
 
   useEffect(() => {
-    socketRef.current = socketIOClient.connect(host, {
-      auth: { token: localStorage.getItem(ACCESS_TOKEN) },
-    });
+    socketRef.current = createSocketInstance();
 
     socketRef.current.on('game-created', (data) => {
       const {
         game: { id },
       } = data;
-      console.log({ id });
       navigate(`/games/${id}`);
     });
 
-    return socketRef.current.disconnect();
+    return () => socketRef.current.disconnect();
   }, []);
 
   const create = () => {

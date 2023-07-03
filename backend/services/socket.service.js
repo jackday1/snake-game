@@ -3,7 +3,7 @@ import * as services from './game.service.js';
 
 export const middleware = (socket, next) => {
   try {
-    const { token } = socket.handshake.auth;
+    const { token } = socket.handshake.query;
     const user = getUserFromToken(token);
     socket.userId = user.id;
     next();
@@ -22,8 +22,18 @@ export const connection = (socket) => {
   socket.on('create-game', async () => {
     try {
       if (!socket.userId) return;
-      const game = await services.create(socket.userId);
-      socket.join(game.id);
+      await services.create();
+    } catch (err) {
+      console.error(err);
+    }
+  });
+
+  socket.on('start-game', async (data) => {
+    try {
+      if (!socket.userId) return;
+      data.userId = socket.userId;
+      // socket.join(data.gameId); // implement later
+      await services.startGame(data);
     } catch (err) {
       console.error(err);
     }
@@ -40,6 +50,7 @@ export const connection = (socket) => {
   });
 
   socket.on('eat', async (data) => {
+    console.log('eat', data);
     try {
       if (!socket.userId) return;
       data.userId = socket.userId;

@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 
 import db from '../db.js';
-import { Directions } from '../utils/constants.js';
+import { Directions, GameStatuses } from '../utils/constants.js';
 import randomNumber from '../utils/randomNumber.js';
 import gameConfigs from '../configs/game.config.js';
 
@@ -16,10 +16,36 @@ export const get = async () => {
   return games;
 };
 
-export const create = async (userId) => {
+export const create = async () => {
   await db.read();
   const { games } = db.data;
   const now = Date.now();
+
+  const game = {
+    id: crypto.randomUUID(),
+    snakes: [],
+    foods: [],
+    createdAt: now,
+    status: GameStatuses.Pending,
+  };
+  games.push(game);
+
+  await db.write();
+
+  // emit socket event
+  _io.emit('game-created', { game });
+};
+
+export const startGame = async (data) => {
+  const { userId, gameId } = data;
+
+  await db.read();
+  const { games } = db.data;
+  const now = Date.now();
+
+  const game = games.find((item) => item.id === gameId);
+  if (!game) throw new Error('Bad request');
+  if (game.status !== GameStatuses.Pending) throw new Error('Bad request');
 
   const snake = {
     userId,
@@ -37,28 +63,24 @@ export const create = async (userId) => {
     createdAt: now,
   };
 
-  const game = {
-    id: crypto.randomUUID(),
-    snakes: [snake],
-    foods: [food],
-  };
-  games.push(game);
+  game.snakes.push(snake);
+  game.foods.push(food);
+  game.status = GameStatuses.Playing;
 
   await db.write();
 
-  // emit socket event
-  _io.emit('game-created', { game });
-
-  return game;
+  _io.emit('game-started', { game });
 };
 
 export const changeDirection = async (data) => {
+  console.log('change direction', data);
   const { userId, gameId, direction } = data;
   if (!Object.values(Directions).includes(direction))
     throw new Error('Bad request');
 
   await db.read();
   const { games } = db.data;
+  const now = Date.now();
 
   const game = games.find((item) => item.id === gameId);
   if (!game) throw new Error('Bad request');
@@ -67,11 +89,48 @@ export const changeDirection = async (data) => {
   const snake = snakes.find((item) => item.userId === userId);
   if (!snake) throw new Error('Bad credential');
 
+  const { direction: oldDirection, startDirectionTime, head } = snake;
+
   if (snake.direction !== direction) {
+    let distance = Math.floor((now - startDirectionTime) / 1000) * speed;
+    console.log({ distance });
+    const newHead = { ...head };
+    switch (oldDirection) {
+      case Directions.Up:
+        distance = distance % maxY;
+        newHead.y += distance;
+        newHead.y = newHead.y % maxY;
+        break;
+      case Directions.Down:
+        distance = distance % maxY;
+        newHead.y -= distance;
+        while (newHead.y < 0) {
+          newHead.y += maxY;
+        }
+        newHead.y = newHead.y % maxY;
+        break;
+      case Directions.Right:
+        distance = distance % maxX;
+        newHead.x += distance;
+        newHead.x = newHead.x % maxX;
+        break;
+      case Directions.Left:
+        distance = distance % maxX;
+        newHead.x -= distance;
+        while (newHead.x < 0) {
+          newHead.x += maxX;
+        }
+        newHead.x = newHead.x % maxX;
+        break;
+    }
+
     snake.direction = direction;
-    snake.startDirectionTime = Date.now();
+    snake.startDirectionTime = now;
+    snake.head = newHead;
     await db.write();
   }
+
+  _io.emit('direction-changed', { gameId, snake });
 };
 
 export const eat = async (data) => {
@@ -127,7 +186,7 @@ export const eat = async (data) => {
   await db.write();
 
   // emit socket event
-  _io.to(gameId).emit('ate', { snake });
+  _io.emit('ate', { gameId, snake, newFood });
 };
 
 export const join = async (data) => {
