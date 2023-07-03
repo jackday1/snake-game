@@ -46,7 +46,12 @@ export const startGame = async (data) => {
   const game = games.find((item) => item.id === gameId);
   if (!game) throw new Error('Bad request');
   if (game.status !== GameStatuses.Pending) {
-    _io.emit('game-started', { game });
+    _io.emit('game-started', {
+      game: {
+        ...game,
+        snake: game.snakes.find((item) => item.userId === userId),
+      },
+    });
     return;
   }
 
@@ -72,7 +77,12 @@ export const startGame = async (data) => {
 
   await db.write();
 
-  _io.emit('game-started', { game });
+  _io.emit('game-started', {
+    game: {
+      ...game,
+      snake: game.snakes.find((item) => item.userId === userId),
+    },
+  });
 };
 
 export const changeDirection = async (data) => {

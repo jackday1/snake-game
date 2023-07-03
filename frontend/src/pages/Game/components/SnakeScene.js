@@ -58,15 +58,16 @@ export class SnakeScene extends Phaser.Scene {
     this.socket.on('game-started', (data) => {
       console.log('game-started', data);
       const {
-        game: { snakes, foods },
+        game: { snake, foods },
       } = data;
+
       this.snake = new Snake(
         this,
-        snakes[0].head.x - 2,
-        snakes[0].head.y,
+        snake.head.x - 2,
+        snake.head.y,
         this.size,
-        snakes[0].direction,
-        snakes[0].direction
+        snake.direction,
+        snake.direction
       );
       this.food = new Food(this, foods[0].x, foods[0].y, this.size);
       this.foodId = foods[0].id;
@@ -74,7 +75,7 @@ export class SnakeScene extends Phaser.Scene {
 
       // this.reset();
       this.snake.alive = true;
-      this.game.events.emit(Events.IncreaseScore, snakes[0].length);
+      this.game.events.emit(Events.IncreaseScore, snake.length);
       this.game.events.emit(Events.GameStart);
     });
 
