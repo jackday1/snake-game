@@ -68,8 +68,8 @@ export const connection = (socket) => {
     const x = randomNumber(0, maxX);
     const y = randomNumber(0, maxY);
     backEndPlayers[userId] = {
-      x,
-      y,
+      x: Math.max(0, x - (x % speed)),
+      y: Math.max(0, y - (y % speed)),
       cells: [
         { x, y },
         { x: x - 1, y },
@@ -125,50 +125,8 @@ export const connection = (socket) => {
 const backEndPlayers = {};
 let food = null;
 
-const updatePlayerPositions = () => {
-  for (const id in backEndPlayers) {
-    const player = backEndPlayers[id];
-    switch (player.direction) {
-      case 'up':
-        player.y -= speed;
-        break;
-      case 'down':
-        player.y += speed;
-        break;
-      case 'left':
-        player.x -= speed;
-        break;
-      case 'right':
-        player.x += speed;
-        break;
-    }
-    player.cells.unshift({ x: player.x, y: player.y });
-    player.cells.pop();
-  }
-};
-
 const collideWithFood = (player) => {
-  const border = {
-    top: food.y,
-    bottom: food.y + size,
-    left: food.x,
-    right: food.x + size,
-  };
-
-  const corners = [
-    { x: player.x, y: player.y },
-    { x: player.x + size, y: player.y },
-    { x: player.x, y: player.y + size },
-    { x: player.x + size, y: player.y + size },
-  ];
-
-  return corners.some(
-    (item) =>
-      border.top <= item.y &&
-      item.y <= border.bottom &&
-      border.left <= item.x &&
-      item.x <= border.right
-  );
+  return player.x === food.x && player.y === food.y;
 };
 
 const gameTick = () => {
@@ -181,9 +139,11 @@ const gameTick = () => {
 
   // check food
   if (!food) {
+    const x = randomNumber(0, maxX);
+    const y = randomNumber(0, maxY);
     food = {
-      x: randomNumber(0, maxX),
-      y: randomNumber(0, maxY),
+      x: Math.max(0, x - (x % 20)),
+      y: Math.max(0, y - (y % 20)),
     };
   }
 

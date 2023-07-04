@@ -4,11 +4,11 @@ import { gsap } from 'gsap';
 import gameConfigs from '../../../configs/game.config';
 import { createSocketInstance } from '../../../services/socket.service';
 
-const { speed, tickRate } = gameConfigs;
+const { speed, size, tickRate } = gameConfigs;
 
 class Food extends Phaser.GameObjects.Image {
   constructor(scene, x, y) {
-    super(scene, x, y, 'food');
+    super(scene, x + size / 2, y + size / 2, 'food');
   }
 }
 
@@ -125,7 +125,7 @@ export class SnakeScene extends Phaser.Scene {
           this.food = new Food(this, food.x, food.y);
           this.children.add(this.food);
         } else {
-          this.food.setPosition(food.x, food.y);
+          this.food.setPosition(food.x + size / 2, food.y + size / 2);
         }
       }
       for (const id in backEndPlayers) {
@@ -182,7 +182,11 @@ export class SnakeScene extends Phaser.Scene {
 
     this.socket.on('grow', ({ userId, food }) => {
       const snake = this.frontEndPlayers[userId];
-      var newPart = snake.body.create(food.x, food.y, 'body');
+      var newPart = snake.body.create(
+        snake.cells.at(-1).x,
+        snake.cells.at(-1).y,
+        'body'
+      );
       newPart.setOrigin(0);
     });
   }
@@ -250,7 +254,7 @@ export class SnakeScene extends Phaser.Scene {
 
       let food = null;
       if (this.food) {
-        food = { x: this.food.x, y: this.food.y };
+        food = { x: this.food.x - size / 2, y: this.food.y - size / 2 };
       }
       this.children.removeAll();
       if (food) {
