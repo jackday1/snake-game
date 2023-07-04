@@ -248,10 +248,19 @@ export class SnakeScene extends Phaser.Scene {
         1
       );
 
-      // for (const cell of snake.cells) {
-      //   const newPart = snake.body.create(cell.x, cell.y, 'body');
-      //   newPart.setOrigin(0);
-      // }
+      let food = null;
+      if (this.food) {
+        food = { x: this.food.x, y: this.food.y };
+      }
+      this.children.removeAll();
+      if (food) {
+        this.food = new Food(this, food.x, food.y);
+        this.children.add(this.food);
+      }
+      for (const cell of snake.cells) {
+        const newPart = snake.body.create(cell.x, cell.y, 'body');
+        newPart.setOrigin(0);
+      }
     }
   }
 }
