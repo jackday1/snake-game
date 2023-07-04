@@ -89,6 +89,7 @@ export const connection = (socket) => {
 
   socket.on('keydown', ({ keycode, sequenceNumber }) => {
     const player = backEndPlayers[userId];
+    if (!player) return;
     player.sequenceNumber = sequenceNumber;
     switch (keycode) {
       case 'KeyW':
@@ -165,6 +166,13 @@ const gameTick = () => {
     }
     player.cells.unshift({ x: player.x, y: player.y });
     player.cells.pop();
+
+    // with border
+    if (player.x < 0 || player.x > maxX || player.y < 0 || player.y > maxY) {
+      delete backEndPlayers[id];
+      _io.emit('dead', { userId: id });
+      continue;
+    }
 
     // check if player can eat food
     if (collideWithFood(player)) {

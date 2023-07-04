@@ -190,7 +190,7 @@ export class SnakeScene extends Phaser.Scene {
       }
     });
 
-    this.socket.on('grow', ({ userId, food }) => {
+    this.socket.on('grow', ({ userId }) => {
       const snake = this.frontEndPlayers[userId];
       var newPart = snake.body.create(
         snake.cells.at(-1).x,
@@ -198,6 +198,13 @@ export class SnakeScene extends Phaser.Scene {
         'body'
       );
       newPart.setOrigin(0);
+    });
+
+    this.socket.on('dead', ({ userId }) => {
+      if (userId === this.userId) {
+        clearInterval(this.interval);
+        alert('You lost!');
+      }
     });
   }
 
@@ -253,6 +260,8 @@ export class SnakeScene extends Phaser.Scene {
   }
 
   update(time, delta) {
+    if (!Object.keys(this.frontEndPlayers).length) return;
+
     let food = null;
     if (this.food) {
       food = { x: this.food.x - size / 2, y: this.food.y - size / 2 };

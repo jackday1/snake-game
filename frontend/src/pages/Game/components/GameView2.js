@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Box, Typography } from '@mui/material';
+import { red } from '@mui/material/colors';
 import Phaser from 'phaser';
 
 import SnakeScene from './SnakeScene2';
@@ -28,7 +29,15 @@ const GameView = () => {
   return (
     <Box display="flex">
       <Box m="auto" textAlign="center">
-        <Box id="game" className="game-screen" />
+        <Box
+          id="game"
+          className="game-screen"
+          sx={{
+            '& canvas': {
+              border: `2px solid ${red[500]}`,
+            },
+          }}
+        />
       </Box>
     </Box>
   );
