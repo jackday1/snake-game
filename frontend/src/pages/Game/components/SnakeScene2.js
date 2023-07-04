@@ -16,16 +16,21 @@ class Snake {
   userId;
   x;
   y;
+  cells;
   body;
   color;
-  constructor(scene, x, y, color) {
+  constructor(scene, x, y, cells, color) {
     this.x = x;
     this.y = y;
     this.color = color;
-
+    this.cells = cells;
     this.body = scene.add.group();
     this.head = this.body.create(x, y, 'body');
     this.head.setOrigin(0);
+    for (const cell of cells) {
+      const newPart = this.body.create(cell.x, cell.y, 'body');
+      newPart.setOrigin(0);
+    }
   }
 }
 
@@ -115,7 +120,6 @@ export class SnakeScene extends Phaser.Scene {
     this.socket = createSocketInstance();
 
     this.socket.on('updatePlayers', ({ backEndPlayers, food }) => {
-      console.log({ backEndPlayers, food });
       if (food) {
         if (!this.food) {
           this.food = new Food(this, food.x, food.y);
@@ -133,6 +137,7 @@ export class SnakeScene extends Phaser.Scene {
             this,
             backEndPlayer.x,
             backEndPlayer.y,
+            backEndPlayer.cells,
             backEndPlayer.color
           );
         } else {
@@ -140,6 +145,7 @@ export class SnakeScene extends Phaser.Scene {
             // if a player already exists
             this.frontEndPlayers[id].x = backEndPlayer.x;
             this.frontEndPlayers[id].y = backEndPlayer.y;
+            this.frontEndPlayers[id].cells = backEndPlayer.cells;
 
             const lastBackendInputIndex = this.playerInputs.findIndex(
               (input) => {
@@ -173,11 +179,17 @@ export class SnakeScene extends Phaser.Scene {
         }
       }
     });
+
+    this.socket.on('grow', ({ userId, food }) => {
+      const snake = this.frontEndPlayers[userId];
+      var newPart = snake.body.create(food.x, food.y, 'body');
+      newPart.setOrigin(0);
+    });
   }
 
   preload() {
-    this.load.image('food', '/images/heart20.png');
-    this.load.image('body', '/images/square20.png');
+    this.load.image('food', 'images/heart20.png');
+    this.load.image('body', 'images/snake.png');
   }
 
   create() {
@@ -235,6 +247,11 @@ export class SnakeScene extends Phaser.Scene {
         snake.y,
         1
       );
+
+      // for (const cell of snake.cells) {
+      //   const newPart = snake.body.create(cell.x, cell.y, 'body');
+      //   newPart.setOrigin(0);
+      // }
     }
   }
 }

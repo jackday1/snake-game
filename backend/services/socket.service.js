@@ -70,6 +70,11 @@ export const connection = (socket) => {
     backEndPlayers[userId] = {
       x,
       y,
+      cells: [
+        { x, y },
+        { x: x - 1, y },
+        { x: x - 2, y },
+      ],
       color: `hsl(${360 * Math.random()}, 100%, 50%)`,
       sequenceNumber: 0,
       direction: 'right',
@@ -137,6 +142,8 @@ const updatePlayerPositions = () => {
         player.x += speed;
         break;
     }
+    player.cells.unshift({ x: player.x, y: player.y });
+    player.cells.pop();
   }
 };
 
@@ -164,40 +171,49 @@ const collideWithFood = (player) => {
   );
 };
 
-const checkFood = () => {
-  if (food) return;
-  food = {
-    x: randomNumber(0, maxX),
-    y: randomNumber(0, maxY),
-  };
-};
+const gameTick = () => {
+  // implement logic check game over
+  const isGameOver = false;
+  if (isGameOver) {
+    clearInterval(gameTickInterval);
+    return;
+  }
 
-const checkPlayerFood = () => {
-  if (!food) return;
+  // check food
+  if (!food) {
+    food = {
+      x: randomNumber(0, maxX),
+      y: randomNumber(0, maxY),
+    };
+  }
+
   for (const id in backEndPlayers) {
     const player = backEndPlayers[id];
+    switch (player.direction) {
+      case 'up':
+        player.y -= speed;
+        break;
+      case 'down':
+        player.y += speed;
+        break;
+      case 'left':
+        player.x -= speed;
+        break;
+      case 'right':
+        player.x += speed;
+        break;
+    }
+    player.cells.unshift({ x: player.x, y: player.y });
+    player.cells.pop();
+
+    // check if player can eat food
     if (collideWithFood(player)) {
+      _io.emit('grow', { userId: id, food });
+      player.cells.unshift({ x: food.x, y: food.y });
       food = null;
     }
   }
-};
 
-const isGameOver = () => {
-  // implement logic game over
-  return false;
-};
-
-const checkGameOver = () => {
-  if (isGameOver()) {
-    clearInterval(gameTickInterval);
-  }
-};
-
-const gameTick = () => {
-  checkGameOver();
-  updatePlayerPositions();
-  checkPlayerFood();
-  checkFood();
   _io.emit('updatePlayers', { backEndPlayers, food });
 };
 
