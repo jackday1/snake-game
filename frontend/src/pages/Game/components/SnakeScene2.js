@@ -55,6 +55,7 @@ export class SnakeScene extends Phaser.Scene {
     },
   };
   interval = setInterval(() => {
+    const player = this.frontEndPlayers[this.userId];
     if (this.keys.w.pressed) {
       this.sequenceNumber++;
       this.playerInputs.push({
@@ -62,7 +63,9 @@ export class SnakeScene extends Phaser.Scene {
         dx: 0,
         dy: -speed,
       });
-      this.frontEndPlayers[this.userId].y -= speed;
+      player.y -= speed;
+      player.cells.unshift({ x: player.x, y: player.y });
+      player.cells.pop();
       this.socket.emit('keydown', {
         keycode: 'KeyW',
         sequenceNumber: this.sequenceNumber,
@@ -76,7 +79,9 @@ export class SnakeScene extends Phaser.Scene {
         dx: -speed,
         dy: 0,
       });
-      this.frontEndPlayers[this.userId].x -= speed;
+      player.x -= speed;
+      player.cells.unshift({ x: player.x, y: player.y });
+      player.cells.pop();
       this.socket.emit('keydown', {
         keycode: 'KeyA',
         sequenceNumber: this.sequenceNumber,
@@ -90,7 +95,9 @@ export class SnakeScene extends Phaser.Scene {
         dx: 0,
         dy: speed,
       });
-      this.frontEndPlayers[this.userId].y += speed;
+      player.y += speed;
+      player.cells.unshift({ x: player.x, y: player.y });
+      player.cells.pop();
       this.socket.emit('keydown', {
         keycode: 'KeyS',
         sequenceNumber: this.sequenceNumber,
@@ -104,7 +111,9 @@ export class SnakeScene extends Phaser.Scene {
         dx: speed,
         dy: 0,
       });
-      this.frontEndPlayers[this.userId].x += speed;
+      player.x += speed;
+      player.cells.unshift({ x: player.x, y: player.y });
+      player.cells.pop();
       this.socket.emit('keydown', {
         keycode: 'KeyD',
         sequenceNumber: this.sequenceNumber,
