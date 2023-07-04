@@ -166,6 +166,7 @@ export class SnakeScene extends Phaser.Scene {
             gsap.to(this.frontEndPlayers[id], {
               x: backEndPlayer.x,
               y: backEndPlayer.y,
+              cells: backEndPlayer.cells,
               duration: 0.015,
               ease: 'linear',
             });
@@ -243,6 +244,16 @@ export class SnakeScene extends Phaser.Scene {
   }
 
   update(time, delta) {
+    let food = null;
+    if (this.food) {
+      food = { x: this.food.x - size / 2, y: this.food.y - size / 2 };
+    }
+    this.children.removeAll();
+    if (food) {
+      this.food = new Food(this, food.x, food.y);
+      this.children.add(this.food);
+    }
+
     for (const id in this.frontEndPlayers) {
       const snake = this.frontEndPlayers[id];
       Phaser.Actions.ShiftPosition(
@@ -252,15 +263,6 @@ export class SnakeScene extends Phaser.Scene {
         1
       );
 
-      let food = null;
-      if (this.food) {
-        food = { x: this.food.x - size / 2, y: this.food.y - size / 2 };
-      }
-      this.children.removeAll();
-      if (food) {
-        this.food = new Food(this, food.x, food.y);
-        this.children.add(this.food);
-      }
       for (const cell of snake.cells) {
         const newPart = snake.body.create(cell.x, cell.y, 'body');
         newPart.setOrigin(0);

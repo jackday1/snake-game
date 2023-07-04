@@ -126,7 +126,7 @@ const backEndPlayers = {};
 let food = null;
 
 const collideWithFood = (player) => {
-  return player.x === food.x && player.y === food.y;
+  return player.x === food?.x && player.y === food?.y;
 };
 
 const gameTick = () => {
