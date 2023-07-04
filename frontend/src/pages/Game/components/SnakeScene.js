@@ -43,6 +43,7 @@ export class SnakeScene extends Phaser.Scene {
   total = 0;
   snake;
   food;
+  otherSnakes;
   gameId;
   foodId;
 
@@ -83,7 +84,7 @@ export class SnakeScene extends Phaser.Scene {
       const { snake, newFood } = data;
       console.log('ate', { snake, newFood });
       this.game.events.emit(Events.IncreaseScore, snake.length);
-      this.food.setPosition(
+      this.food?.setPosition(
         newFood.x * this.size + this.size / 2,
         newFood.y * this.size + this.size / 2
       );
@@ -127,7 +128,7 @@ export class SnakeScene extends Phaser.Scene {
     // this.total = this.total + 1;
     console.log('eat', this.food);
     this.socket.emit('eat', { gameId: this.gameId, foodId: this.foodId });
-    this.food.setPosition(-10, -10);
+    this.food?.setPosition(-10, -10);
     this.foodId = null;
   }
 

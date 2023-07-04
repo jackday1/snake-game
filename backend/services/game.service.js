@@ -88,10 +88,12 @@ export const startGame = async (data) => {
 export const changeDirection = async (data) => {
   const now = Date.now();
   const { userId, gameId, direction, timestamp, position } = data;
-  console.log('change direction', { ...data, now });
+  console.log('change direction', {
+    ...data,
+    now,
+  });
 
   if (timestamp > now) throw new Error('Bad request');
-  if (timestamp < now - 200) throw new Error('Bad request'); // allow 200ms on delay between client and server
   if (!Object.values(Directions).includes(direction))
     throw new Error('Bad request');
 
@@ -106,64 +108,65 @@ export const changeDirection = async (data) => {
   if (!snake) throw new Error('Bad credential');
 
   const { direction: oldDirection, startDirectionTime, head } = snake;
+  if (timestamp < startDirectionTime) return;
 
-  if (snake.direction !== direction) {
-    let distance = Math.floor((now - startDirectionTime) / 1000) * speed;
-    const newHead = JSON.parse(JSON.stringify(head));
-    switch (oldDirection) {
-      case Directions.Up:
-        distance = distance % maxY;
-        newHead.y += distance;
-        newHead.y = newHead.y % maxY;
-        break;
-      case Directions.Down:
-        distance = distance % maxY;
-        newHead.y -= distance;
-        while (newHead.y < 0) {
-          newHead.y += maxY;
-        }
-        newHead.y = newHead.y % maxY;
-        break;
-      case Directions.Right:
-        distance = distance % maxX;
-        newHead.x += distance;
-        newHead.x = newHead.x % maxX;
-        break;
-      case Directions.Left:
-        distance = distance % maxX;
-        newHead.x -= distance;
-        while (newHead.x < 0) {
-          newHead.x += maxX;
-        }
-        newHead.x = newHead.x % maxX;
-        break;
-    }
-
-    // implement logic validate later
-    // console.log({
-    //   direction,
-    //   newHead,
-    //   position,
-    //   head,
-    //   1: [Directions.Down, Directions.Up].includes(direction)
-    //     ? newHead.y - position.y
-    //     : newHead.x - position.x,
-    //   2: [Directions.Down, Directions.Up].includes(direction)
-    //     ? position.y - head.y
-    //     : position.x - head.x,
-    // });
-
-    // const valid = [Directions.Down, Directions.Up].includes(direction)
-    //   ? (newHead.y - position.y) * (position.y - head.y) >= 0
-    //   : (newHead.x - position.x) * (position.x - head.x) >= 0;
-
-    // if (!valid) throw new Error('Bad request');
-
-    snake.direction = direction;
-    snake.startDirectionTime = timestamp;
-    snake.head = position;
-    await db.write();
+  // if (snake.direction !== direction) {
+  let distance = Math.floor((now - startDirectionTime) / 1000) * speed;
+  const newHead = JSON.parse(JSON.stringify(head));
+  switch (oldDirection) {
+    case Directions.Up:
+      distance = distance % maxY;
+      newHead.y += distance;
+      newHead.y = newHead.y % maxY;
+      break;
+    case Directions.Down:
+      distance = distance % maxY;
+      newHead.y -= distance;
+      while (newHead.y < 0) {
+        newHead.y += maxY;
+      }
+      newHead.y = newHead.y % maxY;
+      break;
+    case Directions.Right:
+      distance = distance % maxX;
+      newHead.x += distance;
+      newHead.x = newHead.x % maxX;
+      break;
+    case Directions.Left:
+      distance = distance % maxX;
+      newHead.x -= distance;
+      while (newHead.x < 0) {
+        newHead.x += maxX;
+      }
+      newHead.x = newHead.x % maxX;
+      break;
   }
+
+  // implement logic validate later
+  // console.log({
+  //   direction,
+  //   newHead,
+  //   position,
+  //   head,
+  //   1: [Directions.Down, Directions.Up].includes(direction)
+  //     ? newHead.y - position.y
+  //     : newHead.x - position.x,
+  //   2: [Directions.Down, Directions.Up].includes(direction)
+  //     ? position.y - head.y
+  //     : position.x - head.x,
+  // });
+
+  // const valid = [Directions.Down, Directions.Up].includes(direction)
+  //   ? (newHead.y - position.y) * (position.y - head.y) >= 0
+  //   : (newHead.x - position.x) * (position.x - head.x) >= 0;
+
+  // if (!valid) throw new Error('Bad request');
+
+  snake.direction = direction;
+  snake.startDirectionTime = timestamp;
+  snake.head = position;
+  await db.write();
+  // }
 
   // _io.emit('direction-changed', { gameId, snake });
 };
@@ -172,7 +175,6 @@ export const eat = async (data) => {
   const { userId, gameId, foodId, timestamp } = data;
   const now = Date.now();
   if (timestamp > now) throw new Error('Bad request');
-  if (timestamp < now - 200) throw new Error('Bad request'); // allow 200ms on delay between client and server
 
   await db.read();
   const { games } = db.data;
