@@ -76,35 +76,49 @@ export const connection = (socket) => {
     };
   }
 
-  _io.emit('updatePlayers', backEndPlayers);
+  _io.emit('updatePlayers', { backEndPlayers, food });
+
+  socket.on('disconnect', () => {
+    delete backEndPlayers[userId];
+  });
 
   socket.on('keydown', ({ keycode, sequenceNumber }) => {
-    backEndPlayers[userId].sequenceNumber = sequenceNumber;
+    const player = backEndPlayers[userId];
+    player.sequenceNumber = sequenceNumber;
     switch (keycode) {
       case 'KeyW':
-        backEndPlayers[userId].y -= speed;
-        backEndPlayers[userId].direction = 'up';
+        // backEndPlayers[userId].y -= speed;
+        if (player.direction !== 'down') {
+          player.direction = 'up';
+        }
         break;
 
       case 'KeyA':
-        backEndPlayers[userId].x -= speed;
-        backEndPlayers[userId].direction = 'left';
+        // backEndPlayers[userId].x -= speed;
+        if (player.direction !== 'right') {
+          player.direction = 'left';
+        }
         break;
 
       case 'KeyS':
-        backEndPlayers[userId].y += speed;
-        backEndPlayers[userId].direction = 'down';
+        // backEndPlayers[userId].y += speed;
+        if (player.direction !== 'up') {
+          player.direction = 'down';
+        }
         break;
 
       case 'KeyD':
-        backEndPlayers[userId].x += speed;
-        backEndPlayers[userId].direction = 'right';
+        // backEndPlayers[userId].x += speed;
+        if (player.direction !== 'left') {
+          player.direction = 'right';
+        }
         break;
     }
   });
 };
 
 const backEndPlayers = {};
+let food = null;
 
 const updatePlayerPositions = () => {
   for (const id in backEndPlayers) {
@@ -126,21 +140,70 @@ const updatePlayerPositions = () => {
   }
 };
 
-const checkPlayers = () => {
+const collideWithFood = (player) => {
+  const border = {
+    top: food.y,
+    bottom: food.y + size,
+    left: food.x,
+    right: food.x + size,
+  };
+
+  const corners = [
+    { x: player.x, y: player.y },
+    { x: player.x + size, y: player.y },
+    { x: player.x, y: player.y + size },
+    { x: player.x + size, y: player.y + size },
+  ];
+
+  return corners.some(
+    (item) =>
+      border.top <= item.y &&
+      item.y <= border.bottom &&
+      border.left <= item.x &&
+      item.x <= border.right
+  );
+};
+
+const checkFood = () => {
+  if (food) return;
+  food = {
+    x: randomNumber(0, maxX),
+    y: randomNumber(0, maxY),
+  };
+};
+
+const checkPlayerFood = () => {
+  if (!food) return;
   for (const id in backEndPlayers) {
     const player = backEndPlayers[id];
+    if (collideWithFood(player)) {
+      food = null;
+    }
+  }
+};
+
+const isGameOver = () => {
+  // implement logic game over
+  return false;
+};
+
+const checkGameOver = () => {
+  if (isGameOver()) {
+    clearInterval(gameTickInterval);
   }
 };
 
 const gameTick = () => {
-  // implement logic check if game over
-  updatePlayerPositions(); // snake game is a game requires movements without user interaction
-  _io.emit('updatePlayers', backEndPlayers);
+  checkGameOver();
+  updatePlayerPositions();
+  checkPlayerFood();
+  checkFood();
+  _io.emit('updatePlayers', { backEndPlayers, food });
 };
 
 const gameTickInterval = setInterval(gameTick, tickRate);
-
 // we got 3 types of realtime games
 // turn based: chess, monopoly,...
 // game state changes when user interacts: racing,...
 // game state changes without user interactions: snake
+// snake game is a game requires movements without user interaction

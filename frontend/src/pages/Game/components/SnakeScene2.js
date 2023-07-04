@@ -6,6 +6,12 @@ import { createSocketInstance } from '../../../services/socket.service';
 
 const { speed, tickRate } = gameConfigs;
 
+class Food extends Phaser.GameObjects.Image {
+  constructor(scene, x, y) {
+    super(scene, x, y, 'food');
+  }
+}
+
 class Snake {
   userId;
   x;
@@ -24,7 +30,6 @@ class Snake {
 }
 
 export class SnakeScene extends Phaser.Scene {
-  size = gameConfigs.size;
   cursors;
   userId = localStorage.getItem('userId');
   frontEndPlayers = {};
@@ -109,9 +114,19 @@ export class SnakeScene extends Phaser.Scene {
 
     this.socket = createSocketInstance();
 
-    this.socket.on('updatePlayers', (backEndPlayers) => {
+    this.socket.on('updatePlayers', ({ backEndPlayers, food }) => {
+      console.log({ backEndPlayers, food });
+      if (food) {
+        if (!this.food) {
+          this.food = new Food(this, food.x, food.y);
+          this.children.add(this.food);
+        } else {
+          this.food.setPosition(food.x, food.y);
+        }
+      }
       for (const id in backEndPlayers) {
         const backEndPlayer = backEndPlayers[id];
+        if (!backEndPlayer) continue;
 
         if (!this.frontEndPlayers[id]) {
           this.frontEndPlayers[id] = new Snake(
