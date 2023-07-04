@@ -30,6 +30,7 @@ const Home = () => {
       <Button variant="contained" onClick={create}>
         Create game
       </Button>
+      <Button onClick={() => navigate('/game')}>Go to game demo</Button>
     </Box>
   );
 };

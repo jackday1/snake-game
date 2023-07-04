@@ -9,6 +9,10 @@ const useAuth = () => {
     cacheTime: Infinity,
     staleTime: Infinity,
     retry: 0,
+    onSuccess: (res) => {
+      localStorage.setItem('userId', res.data.id);
+    },
+    onError: () => localStorage.removeItem('userId'),
   });
 
   return {

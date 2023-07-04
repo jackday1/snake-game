@@ -1,5 +1,11 @@
 import { getUserFromToken } from './auth.service.js';
 import * as services from './game.service.js';
+import randomNumber from '../utils/randomNumber.js';
+import gameConfigs from '../configs/game.config.js';
+
+const { width, height, size, speed, tickRate } = gameConfigs;
+const maxX = width - size;
+const maxY = height - size;
 
 export const middleware = (socket, next) => {
   try {
@@ -14,10 +20,6 @@ export const middleware = (socket, next) => {
 
 export const connection = (socket) => {
   console.log(`user connected, id: ${socket.id}`);
-
-  socket.on('disconnect', () => {
-    console.log(`user disconnected, id: ${socket.id}`);
-  });
 
   socket.on('create-game', async () => {
     try {
@@ -59,4 +61,42 @@ export const connection = (socket) => {
       console.error(err);
     }
   });
+
+  // new logic
+  const { userId } = socket;
+  if (!backEndPlayers[userId]) {
+    backEndPlayers[userId] = {
+      x: randomNumber(0, maxX),
+      y: randomNumber(0, maxY),
+      color: `hsl(${360 * Math.random()}, 100%, 50%)`,
+      sequenceNumber: 0,
+    };
+  }
+
+  _io.emit('updatePlayers', backEndPlayers);
+
+  socket.on('keydown', ({ keycode, sequenceNumber }) => {
+    backEndPlayers[userId].sequenceNumber = sequenceNumber;
+    switch (keycode) {
+      case 'KeyW':
+        backEndPlayers[userId].y -= speed;
+        break;
+
+      case 'KeyA':
+        backEndPlayers[userId].x -= speed;
+        break;
+
+      case 'KeyS':
+        backEndPlayers[userId].y += speed;
+        break;
+
+      case 'KeyD':
+        backEndPlayers[userId].x += speed;
+        break;
+    }
+  });
 };
+
+setInterval(() => _io.emit('updatePlayers', backEndPlayers), tickRate);
+
+const backEndPlayers = {};
