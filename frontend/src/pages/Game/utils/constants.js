@@ -3,6 +3,7 @@ export const Events = {
   GameStart: 'GameStart',
   IncreaseScore: 'IncreaseScore',
   ResetScore: 'ResetScore',
+  UpdatePlayers: 'UpdatePlayers',
 };
 
 export const Directions = {

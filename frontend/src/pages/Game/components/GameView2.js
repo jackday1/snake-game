@@ -1,15 +1,18 @@
-import { useState, useEffect } from 'react';
-import { Box, Typography } from '@mui/material';
+import { useState, useEffect, useRef } from 'react';
+import { Box, Grid, Typography } from '@mui/material';
 import { red } from '@mui/material/colors';
 import Phaser from 'phaser';
 
 import SnakeScene from './SnakeScene2';
+import ScoreBoard from './ScoreBoard';
 import { Events } from '../utils/constants';
 import gameConfigs from '../../../configs/game.config';
 
 const { width, height } = gameConfigs;
 
 const GameView = () => {
+  const scoreBoardRef = useRef();
+
   useEffect(() => {
     const config = {
       type: Phaser.CANVAS,
@@ -23,22 +26,35 @@ const GameView = () => {
       },
     };
 
-    new Phaser.Game(config);
+    const game = new Phaser.Game(config);
+
+    const addListeners = (game) => {
+      game.events.on(Events.UpdatePlayers, (players) => {
+        scoreBoardRef.current.updatePlayers(players);
+      });
+    };
+
+    addListeners(game);
   }, []);
 
   return (
-    <Box display="flex">
-      <Box m="auto" textAlign="center">
-        <Box
-          id="game"
-          className="game-screen"
-          sx={{
-            '& canvas': {
-              border: `2px solid ${red[500]}`,
-            },
-          }}
-        />
-      </Box>
+    <Box>
+      <Grid container spacing={1}>
+        <Grid item xs={9}>
+          <Box
+            id="game"
+            className="game-screen"
+            sx={{
+              '& canvas': {
+                border: `2px solid ${red[500]}`,
+              },
+            }}
+          />
+        </Grid>
+        <Grid item xs={3}>
+          <ScoreBoard ref={scoreBoardRef} />
+        </Grid>
+      </Grid>
     </Box>
   );
 };

@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
 import { gsap } from 'gsap';
 
-import gameConfigs from '../../../configs/game.config';
 import { createSocketInstance } from '../../../services/socket.service';
+import { Events } from '../utils/constants';
+import gameConfigs from '../../../configs/game.config';
 
 const { speed, size, tickRate } = gameConfigs;
 
@@ -188,6 +189,8 @@ export class SnakeScene extends Phaser.Scene {
           delete this.frontEndPlayers[id];
         }
       }
+
+      this.game.events.emit(Events.UpdatePlayers, backEndPlayers);
     });
 
     this.socket.on('grow', ({ userId }) => {

@@ -12,6 +12,7 @@ export const middleware = (socket, next) => {
     const { token } = socket.handshake.query;
     const user = getUserFromToken(token);
     socket.userId = user.id;
+    socket.userUsername = user.username;
     next();
   } catch (err) {
     next(new Error(err.message));
@@ -63,11 +64,12 @@ export const connection = (socket) => {
   });
 
   // new logic
-  const { userId } = socket;
+  const { userId, userUsername } = socket;
   if (!backEndPlayers[userId]) {
     const x = randomNumber(0, maxX);
     const y = randomNumber(0, maxY);
     backEndPlayers[userId] = {
+      username: userUsername,
       x: Math.max(0, x - (x % speed)),
       y: Math.max(0, y - (y % speed)),
       cells: [
