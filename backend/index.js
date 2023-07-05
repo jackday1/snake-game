@@ -3,7 +3,6 @@ import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 
-import routes from './routes/index.js';
 import { middleware, connection } from './services/socket.service.js';
 import environments from './utils/environments.js';
 
@@ -19,8 +18,6 @@ const main = () => {
   app.get('/', (req, res) => {
     res.send('OK');
   });
-
-  app.use('/api', routes);
 
   const server = createServer(app);
   const io = new Server(server, { cors: { origin: '*' } });

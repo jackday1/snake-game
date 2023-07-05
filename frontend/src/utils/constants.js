@@ -1,1 +1,1 @@
-export const ACCESS_TOKEN = 'ACCESS_TOKEN';
+export const ACCESS_TOKEN = 'DEMO_SNAKE_ACCESS_TOKEN';

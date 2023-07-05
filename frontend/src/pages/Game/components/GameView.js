@@ -1,20 +1,23 @@
-import { useState, useEffect } from 'react';
-import { Box, Typography } from '@mui/material';
+import { useEffect, useRef } from 'react';
+import { Box, Grid, Typography } from '@mui/material';
+import { red } from '@mui/material/colors';
 import Phaser from 'phaser';
 
 import SnakeScene from './SnakeScene';
+import ScoreBoard from './ScoreBoard';
 import { Events } from '../utils/constants';
 import gameConfigs from '../../../configs/game.config';
 
+const { width, height } = gameConfigs;
+
 const GameView = () => {
-  const [score, setScore] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const scoreBoardRef = useRef();
 
   useEffect(() => {
     const config = {
       type: Phaser.CANVAS,
-      width: gameConfigs.width,
-      height: gameConfigs.height,
+      width,
+      height,
       backgroundColor: '#f0f4c3',
       parent: 'game',
       scene: [SnakeScene],
@@ -24,28 +27,10 @@ const GameView = () => {
     };
 
     const game = new Phaser.Game(config);
-    // game.scale.scaleMode = Phaser.Scale.RESIZE;
 
-    // Custom event that change value in Mobx store
     const addListeners = (game) => {
-      game.events.on(Events.GameStart, () => {
-        console.log('Game start');
-        setIsPlaying(true);
-      });
-
-      game.events.on(Events.GameEnd, () => {
-        console.log('Game end');
-        setIsPlaying(false);
-      });
-
-      game.events.on(Events.IncreaseScore, (data) => {
-        console.log('Increase score', data);
-        setScore(data);
-      });
-
-      game.events.on(Events.ResetScore, () => {
-        console.log('Reset score');
-        setScore(0);
+      game.events.on(Events.UpdatePlayers, (players) => {
+        scoreBoardRef.current.updatePlayers(players);
       });
     };
 
@@ -53,15 +38,24 @@ const GameView = () => {
   }, []);
 
   return (
-    <Box display="flex">
-      <Box m="auto" textAlign="center">
-        <Box display="flex" alignItems="center" justifyContent="center" gap={2}>
-          <Typography>
-            {score} {!isPlaying && ' Press Enter to play'}
-          </Typography>
-        </Box>
-        <Box id="game" className="game-screen" />
-      </Box>
+    <Box>
+      <Grid container spacing={1}>
+        <Grid item xs={9}>
+          <Typography>Press Enter to play!</Typography>
+          <Box
+            id="game"
+            className="game-screen"
+            sx={{
+              '& canvas': {
+                border: `2px solid ${red[500]}`,
+              },
+            }}
+          />
+        </Grid>
+        <Grid item xs={3}>
+          <ScoreBoard ref={scoreBoardRef} />
+        </Grid>
+      </Grid>
     </Box>
   );
 };

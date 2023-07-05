@@ -5,8 +5,17 @@ import environments from '../utils/environments';
 
 const { BACKEND_URL } = environments;
 
-export const createSocketInstance = () =>
-  io(BACKEND_URL, {
+export const createSocketInstance = () => {
+  // create a random token
+  // should use jwt token in production
+  let accessToken = localStorage.getItem(ACCESS_TOKEN);
+  if (!accessToken) {
+    accessToken = crypto.randomUUID();
+    localStorage.setItem(ACCESS_TOKEN, accessToken);
+  }
+
+  return io(BACKEND_URL, {
     transports: ['websocket'],
-    query: { token: localStorage.getItem(ACCESS_TOKEN) },
+    query: { token: accessToken },
   });
+};

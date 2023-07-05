@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Box } from '@mui/material';
 
-import GameView from './components/GameView2';
+import GameView from './components/GameView';
 import { createSocketInstance } from '../../services/socket.service';
 
 const Game = () => {

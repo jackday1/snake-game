@@ -1,7 +1,5 @@
-// import { Worker } from 'worker_threads';
+import { faker } from '@faker-js/faker';
 
-import { getUserFromToken } from './auth.service.js';
-import * as services from './game.service.js';
 import randomNumber from '../utils/randomNumber.js';
 import gameConfigs from '../configs/game.config.js';
 
@@ -9,63 +7,30 @@ const { width, height, size, speed, tickRate } = gameConfigs;
 const maxX = width - size;
 const maxY = height - size;
 
+let usernames = {};
+let backEndPlayers = {};
+let food = null;
+let gameTickInterval;
+
 export const middleware = (socket, next) => {
   try {
+    // use token to authentication user
+    // set user info to socket
     const { token } = socket.handshake.query;
-    const user = getUserFromToken(token);
-    socket.userId = user.id;
-    socket.userUsername = user.username;
+
+    socket.userId = token;
+    if (!usernames[token]) {
+      usernames[token] = faker.internet.userName();
+    }
+    socket.userUsername = usernames[token];
     next();
   } catch (err) {
     next(new Error(err.message));
   }
 };
 
-let gameTickInterval;
-
 export const connection = (socket) => {
   console.log(`user connected, id: ${socket.id}`);
-
-  socket.on('create-game', async () => {
-    try {
-      if (!socket.userId) return;
-      await services.create();
-    } catch (err) {
-      console.error(err);
-    }
-  });
-
-  socket.on('start-game', async (data) => {
-    try {
-      if (!socket.userId) return;
-      data.userId = socket.userId;
-      // socket.join(data.gameId); // implement later
-      await services.startGame(data);
-    } catch (err) {
-      console.error(err);
-    }
-  });
-
-  socket.on('change-direction', async (data) => {
-    try {
-      if (!socket.userId) return;
-      data.userId = socket.userId;
-      await services.changeDirection(data);
-    } catch (err) {
-      console.error(err);
-    }
-  });
-
-  socket.on('eat', async (data) => {
-    console.log('eat', data);
-    try {
-      if (!socket.userId) return;
-      data.userId = socket.userId;
-      await services.eat(data);
-    } catch (err) {
-      console.error(err);
-    }
-  });
 
   socket.on('join', () => {
     const { userId, userUsername } = socket;
@@ -141,31 +106,9 @@ export const connection = (socket) => {
   });
 };
 
-let backEndPlayers = {};
-let food = null;
-
 const collideWithFood = (player) => {
   return player.x === food?.x && player.y === food?.y;
 };
-
-// const gameTick = () => {
-//   const worker = new Worker('./thread-tasks/updatePlayers.js', {
-//     workerData: { backEndPlayers, food },
-//   });
-//   worker.on('message', (data) => {
-//     const { isGameOver, deadIds, growIds } = data;
-//     if (isGameOver) {
-//       clearInterval(gameTickInterval);
-//       return;
-//     }
-
-//     backEndPlayers = data.backEndPlayers;
-//     food = data.food;
-//     _io.emit('dead', { userIds: deadIds });
-//     _io.emit('grow', { userIds: growIds });
-//     _io.emit('updatePlayers', { backEndPlayers, food });
-//   });
-// };
 
 const gameTick = () => {
   // implement logic check game over
@@ -224,10 +167,3 @@ const gameTick = () => {
 
   _io.emit('updatePlayers', { backEndPlayers, food });
 };
-
-// let gameTickInterval = setInterval(gameTick, tickRate);
-// we got 3 types of realtime games
-// turn based: chess, monopoly,...
-// game state changes when user interacts: racing,...
-// game state changes without user interactions: snake
-// snake game is a game requires movements without user interaction
