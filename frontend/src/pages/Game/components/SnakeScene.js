@@ -27,7 +27,6 @@ class Snake {
     this.cells = cells;
     this.body = scene.add.group();
     this.head = this.body.create(x, y, 'body');
-    console.log(this.body, this.head);
     this.head.setOrigin(0);
     for (const cell of cells) {
       const newPart = this.body.create(cell.x, cell.y, 'body');
@@ -68,7 +67,6 @@ export class SnakeScene extends Phaser.Scene {
     this.socket = createSocketInstance();
 
     this.socket.on('updatePlayers', ({ backEndPlayers, food }) => {
-      console.log(Object.values(backEndPlayers)[0]?.cells);
       if (food) {
         if (!this.food) {
           this.food = new Food(this, food.x, food.y);
