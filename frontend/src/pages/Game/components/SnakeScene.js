@@ -1,5 +1,4 @@
 import Phaser from 'phaser';
-import { gsap } from 'gsap';
 
 import { createSocketInstance } from '../../../services/socket.service';
 import { Events } from '../utils/constants';
@@ -28,6 +27,7 @@ class Snake {
     this.cells = cells;
     this.body = scene.add.group();
     this.head = this.body.create(x, y, 'body');
+    console.log(this.body, this.head);
     this.head.setOrigin(0);
     for (const cell of cells) {
       const newPart = this.body.create(cell.x, cell.y, 'body');
@@ -68,6 +68,7 @@ export class SnakeScene extends Phaser.Scene {
     this.socket = createSocketInstance();
 
     this.socket.on('updatePlayers', ({ backEndPlayers, food }) => {
+      console.log(Object.values(backEndPlayers)[0]?.cells);
       if (food) {
         if (!this.food) {
           this.food = new Food(this, food.x, food.y);
@@ -110,14 +111,9 @@ export class SnakeScene extends Phaser.Scene {
             });
           } else {
             // for all other players
-
-            gsap.to(this.frontEndPlayers[id], {
-              x: backEndPlayer.x,
-              y: backEndPlayer.y,
-              cells: backEndPlayer.cells,
-              duration: 0.015,
-              ease: 'linear',
-            });
+            this.frontEndPlayers[id].x = backEndPlayer.x;
+            this.frontEndPlayers[id].y = backEndPlayer.y;
+            this.frontEndPlayers[id].cells = backEndPlayer.cells;
           }
         }
       }
@@ -143,7 +139,12 @@ export class SnakeScene extends Phaser.Scene {
 
     this.socket.on('dead', ({ userId }) => {
       if (userId === this.userId) {
+        const snake = this.frontEndPlayers[userId];
+        if (!snake) {
+          snake.body.clear(true, true);
+        }
         clearInterval(this.interval);
+        this.interval = null;
         alert('You lost!');
       }
     });
@@ -231,7 +232,9 @@ export class SnakeScene extends Phaser.Scene {
     this.input.keyboard.on('keydown', (event) => {
       if (!this.frontEndPlayers[this.userId]) {
         if (event.code === 'Enter') {
-          this.interval = setInterval(this.keyPressInterval, tickRate);
+          if (!this.interval) {
+            this.interval = setInterval(this.keyPressInterval, tickRate);
+          }
           this.socket.emit('join');
         }
         return;
@@ -294,6 +297,7 @@ export class SnakeScene extends Phaser.Scene {
 
     for (const id in this.frontEndPlayers) {
       const snake = this.frontEndPlayers[id];
+      // snake.body.clear(true);
       Phaser.Actions.ShiftPosition(
         snake.body.getChildren(),
         snake.x,

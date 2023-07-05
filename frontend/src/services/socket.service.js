@@ -10,7 +10,7 @@ export const createSocketInstance = () => {
   // should use jwt token in production
   let accessToken = localStorage.getItem(ACCESS_TOKEN);
   if (!accessToken) {
-    accessToken = crypto.randomUUID();
+    accessToken = Date.now();
     localStorage.setItem(ACCESS_TOKEN, accessToken);
   }
 

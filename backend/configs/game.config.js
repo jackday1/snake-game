@@ -3,7 +3,7 @@ const configs = {
   height: 1000,
   size: 20,
   speed: 10,
-  tickRate: 15,
+  tickRate: 20,
 };
 
 export default configs;
