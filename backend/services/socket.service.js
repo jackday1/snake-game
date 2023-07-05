@@ -67,33 +67,36 @@ export const connection = (socket) => {
     }
   });
 
-  // new logic
-  if (!gameTickInterval && Object.keys(backEndPlayers).length) {
-    gameTickInterval = setInterval(gameTick, tickRate);
-  }
+  socket.on('join', () => {
+    const { userId, userUsername } = socket;
+    if (!backEndPlayers[userId]) {
+      const x = randomNumber(0, maxX);
+      const y = randomNumber(0, maxY);
+      backEndPlayers[userId] = {
+        username: userUsername,
+        x: Math.max(0, x - (x % speed)),
+        y: Math.max(0, y - (y % speed)),
+        cells: [
+          { x, y },
+          { x: x - 1, y },
+          { x: x - 2, y },
+        ],
+        color: `hsl(${360 * Math.random()}, 100%, 50%)`,
+        sequenceNumber: 0,
+        direction: 'right',
+      };
+    }
 
-  const { userId, userUsername } = socket;
-  if (!backEndPlayers[userId]) {
-    const x = randomNumber(0, maxX);
-    const y = randomNumber(0, maxY);
-    backEndPlayers[userId] = {
-      username: userUsername,
-      x: Math.max(0, x - (x % speed)),
-      y: Math.max(0, y - (y % speed)),
-      cells: [
-        { x, y },
-        { x: x - 1, y },
-        { x: x - 2, y },
-      ],
-      color: `hsl(${360 * Math.random()}, 100%, 50%)`,
-      sequenceNumber: 0,
-      direction: 'right',
-    };
-  }
+    // new logic
+    if (!gameTickInterval && Object.keys(backEndPlayers).length) {
+      gameTickInterval = setInterval(gameTick, tickRate);
+    }
 
-  _io.emit('updatePlayers', { backEndPlayers, food });
+    _io.emit('updatePlayers', { backEndPlayers, food });
+  });
 
   socket.on('disconnect', () => {
+    const { userId } = socket;
     delete backEndPlayers[userId];
     if (!Object.keys(backEndPlayers).length) {
       clearInterval(gameTickInterval);
@@ -102,6 +105,7 @@ export const connection = (socket) => {
   });
 
   socket.on('keydown', ({ keycode, sequenceNumber }) => {
+    const { userId } = socket;
     const player = backEndPlayers[userId];
     if (!player) return;
     player.sequenceNumber = sequenceNumber;

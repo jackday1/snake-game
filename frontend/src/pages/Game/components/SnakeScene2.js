@@ -55,81 +55,14 @@ export class SnakeScene extends Phaser.Scene {
       pressed: false,
     },
   };
-  interval = setInterval(() => {
-    const player = this.frontEndPlayers[this.userId];
-    if (this.keys.w.pressed) {
-      if (['up', 'down'].includes(player.direction)) return;
-      this.sequenceNumber++;
-      this.playerInputs.push({
-        sequenceNumber: this.sequenceNumber,
-        dx: 0,
-        dy: -speed,
-      });
-      player.y -= speed;
-      player.cells.unshift({ x: player.x, y: player.y });
-      player.cells.pop();
-      this.socket.emit('keydown', {
-        keycode: 'KeyW',
-        sequenceNumber: this.sequenceNumber,
-      });
-    }
-
-    if (this.keys.a.pressed) {
-      if (['right', 'left'].includes(player.direction)) return;
-      this.sequenceNumber++;
-      this.playerInputs.push({
-        sequenceNumber: this.sequenceNumber,
-        dx: -speed,
-        dy: 0,
-      });
-      player.x -= speed;
-      player.cells.unshift({ x: player.x, y: player.y });
-      player.cells.pop();
-      this.socket.emit('keydown', {
-        keycode: 'KeyA',
-        sequenceNumber: this.sequenceNumber,
-      });
-    }
-
-    if (this.keys.s.pressed) {
-      if (['up', 'down'].includes(player.direction)) return;
-      this.sequenceNumber++;
-      this.playerInputs.push({
-        sequenceNumber: this.sequenceNumber,
-        dx: 0,
-        dy: speed,
-      });
-      player.y += speed;
-      player.cells.unshift({ x: player.x, y: player.y });
-      player.cells.pop();
-      this.socket.emit('keydown', {
-        keycode: 'KeyS',
-        sequenceNumber: this.sequenceNumber,
-      });
-    }
-
-    if (this.keys.d.pressed) {
-      if (['right', 'left'].includes(player.direction)) return;
-      this.sequenceNumber++;
-      this.playerInputs.push({
-        sequenceNumber: this.sequenceNumber,
-        dx: speed,
-        dy: 0,
-      });
-      player.x += speed;
-      player.cells.unshift({ x: player.x, y: player.y });
-      player.cells.pop();
-      this.socket.emit('keydown', {
-        keycode: 'KeyD',
-        sequenceNumber: this.sequenceNumber,
-      });
-    }
-  }, tickRate);
+  interval;
 
   constructor() {
     super({
       key: 'SnakeScene',
     });
+
+    this.keyPressInterval = this.keyPressInterval.bind(this);
 
     this.socket = createSocketInstance();
 
@@ -215,6 +148,78 @@ export class SnakeScene extends Phaser.Scene {
     });
   }
 
+  keyPressInterval() {
+    const player = this.frontEndPlayers?.[this.userId];
+
+    if (this.keys.w.pressed) {
+      if (['up', 'down'].includes(player.direction)) return;
+      this.sequenceNumber++;
+      this.playerInputs.push({
+        sequenceNumber: this.sequenceNumber,
+        dx: 0,
+        dy: -speed,
+      });
+      player.y -= speed;
+      player.cells.unshift({ x: player.x, y: player.y });
+      player.cells.pop();
+      this.socket.emit('keydown', {
+        keycode: 'KeyW',
+        sequenceNumber: this.sequenceNumber,
+      });
+    }
+
+    if (this.keys.a.pressed) {
+      if (['right', 'left'].includes(player.direction)) return;
+      this.sequenceNumber++;
+      this.playerInputs.push({
+        sequenceNumber: this.sequenceNumber,
+        dx: -speed,
+        dy: 0,
+      });
+      player.x -= speed;
+      player.cells.unshift({ x: player.x, y: player.y });
+      player.cells.pop();
+      this.socket.emit('keydown', {
+        keycode: 'KeyA',
+        sequenceNumber: this.sequenceNumber,
+      });
+    }
+
+    if (this.keys.s.pressed) {
+      if (['up', 'down'].includes(player.direction)) return;
+      this.sequenceNumber++;
+      this.playerInputs.push({
+        sequenceNumber: this.sequenceNumber,
+        dx: 0,
+        dy: speed,
+      });
+      player.y += speed;
+      player.cells.unshift({ x: player.x, y: player.y });
+      player.cells.pop();
+      this.socket.emit('keydown', {
+        keycode: 'KeyS',
+        sequenceNumber: this.sequenceNumber,
+      });
+    }
+
+    if (this.keys.d.pressed) {
+      if (['right', 'left'].includes(player.direction)) return;
+      this.sequenceNumber++;
+      this.playerInputs.push({
+        sequenceNumber: this.sequenceNumber,
+        dx: speed,
+        dy: 0,
+      });
+      player.x += speed;
+      player.cells.unshift({ x: player.x, y: player.y });
+      player.cells.pop();
+      this.socket.emit('keydown', {
+        keycode: 'KeyD',
+        sequenceNumber: this.sequenceNumber,
+      });
+    }
+  }
+
   preload() {
     this.load.image('food', 'images/heart20.png');
     this.load.image('body', 'images/snake.png');
@@ -222,7 +227,13 @@ export class SnakeScene extends Phaser.Scene {
 
   create() {
     this.input.keyboard.on('keydown', (event) => {
-      if (!this.frontEndPlayers[this.userId]) return;
+      if (!this.frontEndPlayers[this.userId]) {
+        if (event.code === 'Enter') {
+          this.interval = setInterval(this.keyPressInterval, tickRate);
+          this.socket.emit('join');
+        }
+        return;
+      }
 
       switch (event.code) {
         case 'KeyW':

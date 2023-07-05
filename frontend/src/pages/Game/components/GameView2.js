@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Box, Grid, Typography } from '@mui/material';
 import { red } from '@mui/material/colors';
 import Phaser from 'phaser';
@@ -41,6 +41,7 @@ const GameView = () => {
     <Box>
       <Grid container spacing={1}>
         <Grid item xs={9}>
+          <Typography>Press Enter to play!</Typography>
           <Box
             id="game"
             className="game-screen"
