@@ -19,7 +19,7 @@ const ScoreBoard = ({}, ref) => {
   return (
     <Box display="flex" flexDirection="column" gap={2}>
       <Typography fontSize="20px" fontWeight={700}>
-        Score board
+        Leader board
       </Typography>
       <Box display="flex" flexDirection="column" gap={1}>
         {players.map((player, index) => (

@@ -28,10 +28,6 @@ class Snake {
     this.body = scene.add.group();
     this.head = this.body.create(x, y, 'body');
     this.head.setOrigin(0);
-    // for (const cell of cells) {
-    //   const newPart = this.body.create(cell.x, cell.y, 'body');
-    //   newPart.setOrigin(0);
-    // }
   }
 }
 
