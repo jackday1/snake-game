@@ -114,6 +114,9 @@ export class SnakeScene extends Phaser.Scene {
 
       for (const id in this.frontEndPlayers) {
         if (!backEndPlayers[id]) {
+          const snake = this.frontEndPlayers[id];
+          const children = snake.body.getChildren();
+          children.map((child) => snake.body.killAndHide(child));
           delete this.frontEndPlayers[id];
         }
       }
@@ -123,11 +126,6 @@ export class SnakeScene extends Phaser.Scene {
 
     this.socket.on('dead', ({ userId }) => {
       if (userId === this.userId) {
-        const snake = this.frontEndPlayers[userId];
-        if (snake) {
-          const children = snake.body.getChildren();
-          children.map((child) => snake.body.killAndHide(child));
-        }
         clearInterval(this.interval);
         this.interval = null;
         alert('You lost!');
@@ -154,6 +152,7 @@ export class SnakeScene extends Phaser.Scene {
         keycode: 'KeyW',
         sequenceNumber: this.sequenceNumber,
       });
+      this.keys.w.pressed = false;
     }
 
     if (this.keys.a.pressed) {
@@ -171,6 +170,7 @@ export class SnakeScene extends Phaser.Scene {
         keycode: 'KeyA',
         sequenceNumber: this.sequenceNumber,
       });
+      this.keys.a.pressed = false;
     }
 
     if (this.keys.s.pressed) {
@@ -188,6 +188,7 @@ export class SnakeScene extends Phaser.Scene {
         keycode: 'KeyS',
         sequenceNumber: this.sequenceNumber,
       });
+      this.keys.s.pressed = false;
     }
 
     if (this.keys.d.pressed) {
@@ -205,6 +206,7 @@ export class SnakeScene extends Phaser.Scene {
         keycode: 'KeyD',
         sequenceNumber: this.sequenceNumber,
       });
+      this.keys.d.pressed = false;
     }
   }
 
@@ -245,8 +247,6 @@ export class SnakeScene extends Phaser.Scene {
     });
 
     this.input.keyboard.on('keyup', (event) => {
-      if (!this.frontEndPlayers[this.userId]) return;
-
       switch (event.code) {
         case 'KeyW':
           this.keys.w.pressed = false;
