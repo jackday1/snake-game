@@ -147,8 +147,6 @@ const gameTick = () => {
         player.x += speed;
         break;
     }
-    player.cells.unshift({ x: player.x, y: player.y });
-    player.cells.pop();
 
     // with border
     if (player.x < 0 || player.x > maxX || player.y < 0 || player.y > maxY) {
@@ -157,11 +155,13 @@ const gameTick = () => {
       continue;
     }
 
+    player.cells.unshift({ x: player.x, y: player.y });
+
     // check if player can eat food
     if (collideWithFood(player)) {
-      _io.emit('grow', { userId: id, food });
-      player.cells.unshift({ x: food.x, y: food.y });
       food = null;
+    } else {
+      player.cells.pop();
     }
   }
 

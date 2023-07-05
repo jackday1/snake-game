@@ -28,10 +28,10 @@ class Snake {
     this.body = scene.add.group();
     this.head = this.body.create(x, y, 'body');
     this.head.setOrigin(0);
-    for (const cell of cells) {
-      const newPart = this.body.create(cell.x, cell.y, 'body');
-      newPart.setOrigin(0);
-    }
+    // for (const cell of cells) {
+    //   const newPart = this.body.create(cell.x, cell.y, 'body');
+    //   newPart.setOrigin(0);
+    // }
   }
 }
 
@@ -125,21 +125,12 @@ export class SnakeScene extends Phaser.Scene {
       this.game.events.emit(Events.UpdatePlayers, backEndPlayers);
     });
 
-    this.socket.on('grow', ({ userId }) => {
-      const snake = this.frontEndPlayers[userId];
-      var newPart = snake.body.create(
-        snake.cells.at(-1).x,
-        snake.cells.at(-1).y,
-        'body'
-      );
-      newPart.setOrigin(0);
-    });
-
     this.socket.on('dead', ({ userId }) => {
       if (userId === this.userId) {
         const snake = this.frontEndPlayers[userId];
-        if (!snake) {
-          snake.body.clear(true, true);
+        if (snake) {
+          const children = snake.body.getChildren();
+          children.map((child) => snake.body.killAndHide(child));
         }
         clearInterval(this.interval);
         this.interval = null;
@@ -283,30 +274,18 @@ export class SnakeScene extends Phaser.Scene {
   update(time, delta) {
     if (!Object.keys(this.frontEndPlayers).length) return;
 
-    let food = null;
-    if (this.food) {
-      food = { x: this.food.x - size / 2, y: this.food.y - size / 2 };
-    }
-    this.children.removeAll();
-    if (food) {
-      this.food = new Food(this, food.x, food.y);
-      this.children.add(this.food);
-    }
-
     for (const id in this.frontEndPlayers) {
       const snake = this.frontEndPlayers[id];
-      // snake.body.clear(true);
-      Phaser.Actions.ShiftPosition(
-        snake.body.getChildren(),
-        snake.x,
-        snake.y,
-        1
-      );
-
-      for (const cell of snake.cells) {
-        const newPart = snake.body.create(cell.x, cell.y, 'body');
-        newPart.setOrigin(0);
-      }
+      const children = snake.body.getChildren();
+      snake.cells.map((cell, i) => {
+        const sprite = children[i];
+        if (sprite) {
+          sprite.setPosition(cell.x, cell.y);
+        } else {
+          const newPart = snake.body.create(cell.x, cell.y, 'body');
+          newPart.setOrigin(0);
+        }
+      });
     }
   }
 }
