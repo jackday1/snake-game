@@ -58,6 +58,7 @@ export class SnakeScene extends Phaser.Scene {
   interval = setInterval(() => {
     const player = this.frontEndPlayers[this.userId];
     if (this.keys.w.pressed) {
+      if (['up', 'down'].includes(player.direction)) return;
       this.sequenceNumber++;
       this.playerInputs.push({
         sequenceNumber: this.sequenceNumber,
@@ -74,6 +75,7 @@ export class SnakeScene extends Phaser.Scene {
     }
 
     if (this.keys.a.pressed) {
+      if (['right', 'left'].includes(player.direction)) return;
       this.sequenceNumber++;
       this.playerInputs.push({
         sequenceNumber: this.sequenceNumber,
@@ -90,6 +92,7 @@ export class SnakeScene extends Phaser.Scene {
     }
 
     if (this.keys.s.pressed) {
+      if (['up', 'down'].includes(player.direction)) return;
       this.sequenceNumber++;
       this.playerInputs.push({
         sequenceNumber: this.sequenceNumber,
@@ -106,6 +109,7 @@ export class SnakeScene extends Phaser.Scene {
     }
 
     if (this.keys.d.pressed) {
+      if (['right', 'left'].includes(player.direction)) return;
       this.sequenceNumber++;
       this.playerInputs.push({
         sequenceNumber: this.sequenceNumber,

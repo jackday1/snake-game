@@ -1,3 +1,5 @@
+// import { Worker } from 'worker_threads';
+
 import { getUserFromToken } from './auth.service.js';
 import * as services from './game.service.js';
 import randomNumber from '../utils/randomNumber.js';
@@ -18,6 +20,8 @@ export const middleware = (socket, next) => {
     next(new Error(err.message));
   }
 };
+
+let gameTickInterval;
 
 export const connection = (socket) => {
   console.log(`user connected, id: ${socket.id}`);
@@ -64,6 +68,10 @@ export const connection = (socket) => {
   });
 
   // new logic
+  if (!gameTickInterval && Object.keys(backEndPlayers).length) {
+    gameTickInterval = setInterval(gameTick, tickRate);
+  }
+
   const { userId, userUsername } = socket;
   if (!backEndPlayers[userId]) {
     const x = randomNumber(0, maxX);
@@ -87,6 +95,10 @@ export const connection = (socket) => {
 
   socket.on('disconnect', () => {
     delete backEndPlayers[userId];
+    if (!Object.keys(backEndPlayers).length) {
+      clearInterval(gameTickInterval);
+      gameTickInterval = null;
+    }
   });
 
   socket.on('keydown', ({ keycode, sequenceNumber }) => {
@@ -96,28 +108,28 @@ export const connection = (socket) => {
     switch (keycode) {
       case 'KeyW':
         // backEndPlayers[userId].y -= speed;
-        if (player.direction !== 'down') {
+        if (!['up', 'down'].includes(player.direction)) {
           player.direction = 'up';
         }
         break;
 
       case 'KeyA':
         // backEndPlayers[userId].x -= speed;
-        if (player.direction !== 'right') {
+        if (!['right', 'left'].includes(player.direction)) {
           player.direction = 'left';
         }
         break;
 
       case 'KeyS':
         // backEndPlayers[userId].y += speed;
-        if (player.direction !== 'up') {
+        if (!['up', 'down'].includes(player.direction)) {
           player.direction = 'down';
         }
         break;
 
       case 'KeyD':
         // backEndPlayers[userId].x += speed;
-        if (player.direction !== 'left') {
+        if (!['right', 'left'].includes(player.direction)) {
           player.direction = 'right';
         }
         break;
@@ -125,20 +137,42 @@ export const connection = (socket) => {
   });
 };
 
-const backEndPlayers = {};
+let backEndPlayers = {};
 let food = null;
 
 const collideWithFood = (player) => {
   return player.x === food?.x && player.y === food?.y;
 };
 
+// const gameTick = () => {
+//   const worker = new Worker('./thread-tasks/updatePlayers.js', {
+//     workerData: { backEndPlayers, food },
+//   });
+//   worker.on('message', (data) => {
+//     const { isGameOver, deadIds, growIds } = data;
+//     if (isGameOver) {
+//       clearInterval(gameTickInterval);
+//       return;
+//     }
+
+//     backEndPlayers = data.backEndPlayers;
+//     food = data.food;
+//     _io.emit('dead', { userIds: deadIds });
+//     _io.emit('grow', { userIds: growIds });
+//     _io.emit('updatePlayers', { backEndPlayers, food });
+//   });
+// };
+
 const gameTick = () => {
   // implement logic check game over
   const isGameOver = false;
   if (isGameOver) {
     clearInterval(gameTickInterval);
+    gameTickInterval = null;
     return;
   }
+
+  if (!Object.keys(backEndPlayers).length) return;
 
   // check food
   if (!food) {
@@ -187,7 +221,7 @@ const gameTick = () => {
   _io.emit('updatePlayers', { backEndPlayers, food });
 };
 
-const gameTickInterval = setInterval(gameTick, tickRate);
+// let gameTickInterval = setInterval(gameTick, tickRate);
 // we got 3 types of realtime games
 // turn based: chess, monopoly,...
 // game state changes when user interacts: racing,...
