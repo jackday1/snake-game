@@ -151,6 +151,7 @@ export class SnakeScene extends Phaser.Scene {
 
   keyPressInterval() {
     const player = this.frontEndPlayers?.[this.userId];
+    if (!player) return;
 
     if (this.keys.w.pressed) {
       if (['up', 'down'].includes(player.direction)) return;
