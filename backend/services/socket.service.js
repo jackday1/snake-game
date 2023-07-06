@@ -52,7 +52,6 @@ export const connection = (socket) => {
       };
     }
 
-    // new logic
     if (!gameTickInterval && Object.keys(backEndPlayers).length) {
       gameTickInterval = setInterval(gameTick, tickRate);
     }
