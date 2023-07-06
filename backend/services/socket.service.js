@@ -47,7 +47,6 @@ export const connection = (socket) => {
           { x: x - speed, y },
         ],
         color: `hsl(${360 * Math.random()}, 100%, 50%)`,
-        sequenceNumber: 0,
         direction: 'right',
       };
     }
@@ -56,24 +55,23 @@ export const connection = (socket) => {
       gameTickInterval = setInterval(gameTick, tickRate);
     }
 
-    _io.emit('updatePlayers', { backEndPlayers, food });
+    _io.emit('updatePlayers', { backEndPlayers, food, time: Date.now() });
   });
 
   socket.on('disconnect', () => {
     const { userId } = socket;
     delete backEndPlayers[userId];
-    _io.emit('updatePlayers', { backEndPlayers, food });
+    _io.emit('updatePlayers', { backEndPlayers, food, time: Date.now() });
     if (!Object.keys(backEndPlayers).length) {
       clearInterval(gameTickInterval);
       gameTickInterval = null;
     }
   });
 
-  socket.on('keydown', ({ keycode, sequenceNumber }) => {
+  socket.on('keydown', ({ keycode }) => {
     const { userId } = socket;
     const player = backEndPlayers[userId];
     if (!player) return;
-    player.sequenceNumber = sequenceNumber;
     switch (keycode) {
       case 'KeyW':
         // backEndPlayers[userId].y -= speed;
@@ -165,5 +163,5 @@ const gameTick = () => {
     }
   }
 
-  _io.emit('updatePlayers', { backEndPlayers, food });
+  _io.emit('updatePlayers', { backEndPlayers, food, time: Date.now() });
 };

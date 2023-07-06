@@ -34,8 +34,6 @@ class Snake {
 export class SnakeScene extends Phaser.Scene {
   userId = localStorage.getItem(ACCESS_TOKEN);
   frontEndPlayers = {};
-  sequenceNumber = 0;
-  playerInputs = [];
 
   constructor() {
     super({
@@ -44,7 +42,10 @@ export class SnakeScene extends Phaser.Scene {
 
     this.socket = createSocketInstance();
 
-    this.socket.on('updatePlayers', ({ backEndPlayers, food }) => {
+    this.socket.on('updatePlayers', ({ backEndPlayers, food, time }) => {
+      // uncomment to see how many ms to send event from server to client
+      // const now = Date.now();
+      // console.log({ now, diff: now - time });
       if (food) {
         if (!this.food) {
           this.food = new Food(this, food.x, food.y);
@@ -71,20 +72,6 @@ export class SnakeScene extends Phaser.Scene {
             this.frontEndPlayers[id].x = backEndPlayer.x;
             this.frontEndPlayers[id].y = backEndPlayer.y;
             this.frontEndPlayers[id].cells = backEndPlayer.cells;
-
-            const lastBackendInputIndex = this.playerInputs.findIndex(
-              (input) => {
-                return backEndPlayer.sequenceNumber === input.sequenceNumber;
-              }
-            );
-
-            if (lastBackendInputIndex > -1)
-              this.playerInputs.splice(0, lastBackendInputIndex + 1);
-
-            this.playerInputs.forEach((input) => {
-              this.frontEndPlayers[id].x += input.dx;
-              this.frontEndPlayers[id].y += input.dy;
-            });
           } else {
             // for all other players
             this.frontEndPlayers[id].x = backEndPlayer.x;
@@ -131,76 +118,32 @@ export class SnakeScene extends Phaser.Scene {
       switch (event.code) {
         case 'KeyW':
           if (!['up', 'down'].includes(player.direction)) {
-            this.sequenceNumber++;
-            this.playerInputs.push({
-              sequenceNumber: this.sequenceNumber,
-              dx: 0,
-              dy: -speed,
-            });
-            player.y -= speed;
-            player.direction = 'up';
-            player.cells.unshift({ x: player.x, y: player.y });
-            player.cells.pop();
             this.socket.emit('keydown', {
               keycode: 'KeyW',
-              sequenceNumber: this.sequenceNumber,
             });
           }
           break;
 
         case 'KeyA':
           if (!['right', 'left'].includes(player.direction)) {
-            this.sequenceNumber++;
-            this.playerInputs.push({
-              sequenceNumber: this.sequenceNumber,
-              dx: -speed,
-              dy: 0,
-            });
-            player.x -= speed;
-            player.direction = 'left';
-            player.cells.unshift({ x: player.x, y: player.y });
-            player.cells.pop();
             this.socket.emit('keydown', {
               keycode: 'KeyA',
-              sequenceNumber: this.sequenceNumber,
             });
           }
           break;
 
         case 'KeyS':
           if (!['up', 'down'].includes(player.direction)) {
-            this.sequenceNumber++;
-            this.playerInputs.push({
-              sequenceNumber: this.sequenceNumber,
-              dx: 0,
-              dy: speed,
-            });
-            player.y += speed;
-            player.direction = 'down';
-            player.cells.unshift({ x: player.x, y: player.y });
-            player.cells.pop();
             this.socket.emit('keydown', {
               keycode: 'KeyS',
-              sequenceNumber: this.sequenceNumber,
             });
           }
           break;
 
         case 'KeyD':
           if (!['right', 'left'].includes(player.direction)) {
-            this.sequenceNumber++;
-            this.playerInputs.push({
-              sequenceNumber: this.sequenceNumber,
-              dx: speed,
-              dy: 0,
-            });
-            player.x += speed;
-            player.direction = 'right';
-            player.cells.unshift({ x: player.x, y: player.y });
-            player.cells.pop();
             this.socket.emit('keydown', {
               keycode: 'KeyD',
-              sequenceNumber: this.sequenceNumber,
             });
           }
           break;
