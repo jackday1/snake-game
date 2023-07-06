@@ -127,8 +127,8 @@ const gameTick = () => {
     const x = randomNumber(0, maxX);
     const y = randomNumber(0, maxY);
     food = {
-      x: Math.max(0, x - (x % 20)),
-      y: Math.max(0, y - (y % 20)),
+      x: Math.max(0, x - (x % speed)),
+      y: Math.max(0, y - (y % speed)),
     };
   }
 
