@@ -37,28 +37,11 @@ export class SnakeScene extends Phaser.Scene {
   frontEndPlayers = {};
   sequenceNumber = 0;
   playerInputs = [];
-  keys = {
-    w: {
-      pressed: false,
-    },
-    a: {
-      pressed: false,
-    },
-    s: {
-      pressed: false,
-    },
-    d: {
-      pressed: false,
-    },
-  };
-  interval;
 
   constructor() {
     super({
       key: 'SnakeScene',
     });
-
-    this.keyPressInterval = this.keyPressInterval.bind(this);
 
     this.socket = createSocketInstance();
 
@@ -126,88 +109,9 @@ export class SnakeScene extends Phaser.Scene {
 
     this.socket.on('dead', ({ userId }) => {
       if (userId === this.userId) {
-        clearInterval(this.interval);
-        this.interval = null;
         alert('You lost!');
       }
     });
-  }
-
-  keyPressInterval() {
-    const player = this.frontEndPlayers?.[this.userId];
-    if (!player) return;
-
-    if (this.keys.w.pressed) {
-      if (['up', 'down'].includes(player.direction)) return;
-      this.sequenceNumber++;
-      this.playerInputs.push({
-        sequenceNumber: this.sequenceNumber,
-        dx: 0,
-        dy: -speed,
-      });
-      player.y -= speed;
-      player.cells.unshift({ x: player.x, y: player.y });
-      player.cells.pop();
-      this.socket.emit('keydown', {
-        keycode: 'KeyW',
-        sequenceNumber: this.sequenceNumber,
-      });
-      this.keys.w.pressed = false;
-    }
-
-    if (this.keys.a.pressed) {
-      if (['right', 'left'].includes(player.direction)) return;
-      this.sequenceNumber++;
-      this.playerInputs.push({
-        sequenceNumber: this.sequenceNumber,
-        dx: -speed,
-        dy: 0,
-      });
-      player.x -= speed;
-      player.cells.unshift({ x: player.x, y: player.y });
-      player.cells.pop();
-      this.socket.emit('keydown', {
-        keycode: 'KeyA',
-        sequenceNumber: this.sequenceNumber,
-      });
-      this.keys.a.pressed = false;
-    }
-
-    if (this.keys.s.pressed) {
-      if (['up', 'down'].includes(player.direction)) return;
-      this.sequenceNumber++;
-      this.playerInputs.push({
-        sequenceNumber: this.sequenceNumber,
-        dx: 0,
-        dy: speed,
-      });
-      player.y += speed;
-      player.cells.unshift({ x: player.x, y: player.y });
-      player.cells.pop();
-      this.socket.emit('keydown', {
-        keycode: 'KeyS',
-        sequenceNumber: this.sequenceNumber,
-      });
-      this.keys.s.pressed = false;
-    }
-
-    if (this.keys.d.pressed) {
-      if (['right', 'left'].includes(player.direction)) return;
-      this.sequenceNumber++;
-      this.playerInputs.push({
-        sequenceNumber: this.sequenceNumber,
-        dx: speed,
-        dy: 0,
-      });
-      player.x += speed;
-      player.cells.unshift({ x: player.x, y: player.y });
-      player.cells.pop();
-      this.socket.emit('keydown', {
-        keycode: 'KeyD',
-        sequenceNumber: this.sequenceNumber,
-      });
-      this.keys.d.pressed = false;
-    }
   }
 
   preload() {
@@ -217,11 +121,9 @@ export class SnakeScene extends Phaser.Scene {
 
   create() {
     this.input.keyboard.on('keydown', (event) => {
-      if (!this.frontEndPlayers[this.userId]) {
+      const player = this.frontEndPlayers[this.userId];
+      if (!player) {
         if (event.code === 'Enter') {
-          if (!this.interval) {
-            this.interval = setInterval(this.keyPressInterval, tickRate);
-          }
           this.socket.emit('join');
         }
         return;
@@ -229,39 +131,75 @@ export class SnakeScene extends Phaser.Scene {
 
       switch (event.code) {
         case 'KeyW':
-          this.keys.w.pressed = true;
+          if (!['up', 'down'].includes(player.direction)) {
+            this.sequenceNumber++;
+            this.playerInputs.push({
+              sequenceNumber: this.sequenceNumber,
+              dx: 0,
+              dy: -speed,
+            });
+            player.y -= speed;
+            player.cells.unshift({ x: player.x, y: player.y });
+            player.cells.pop();
+            this.socket.emit('keydown', {
+              keycode: 'KeyW',
+              sequenceNumber: this.sequenceNumber,
+            });
+          }
           break;
 
         case 'KeyA':
-          this.keys.a.pressed = true;
+          if (!['right', 'left'].includes(player.direction)) {
+            this.sequenceNumber++;
+            this.playerInputs.push({
+              sequenceNumber: this.sequenceNumber,
+              dx: -speed,
+              dy: 0,
+            });
+            player.x -= speed;
+            player.cells.unshift({ x: player.x, y: player.y });
+            player.cells.pop();
+            this.socket.emit('keydown', {
+              keycode: 'KeyA',
+              sequenceNumber: this.sequenceNumber,
+            });
+          }
           break;
 
         case 'KeyS':
-          this.keys.s.pressed = true;
+          if (!['up', 'down'].includes(player.direction)) {
+            this.sequenceNumber++;
+            this.playerInputs.push({
+              sequenceNumber: this.sequenceNumber,
+              dx: 0,
+              dy: speed,
+            });
+            player.y += speed;
+            player.cells.unshift({ x: player.x, y: player.y });
+            player.cells.pop();
+            this.socket.emit('keydown', {
+              keycode: 'KeyS',
+              sequenceNumber: this.sequenceNumber,
+            });
+          }
           break;
 
         case 'KeyD':
-          this.keys.d.pressed = true;
-          break;
-      }
-    });
-
-    this.input.keyboard.on('keyup', (event) => {
-      switch (event.code) {
-        case 'KeyW':
-          this.keys.w.pressed = false;
-          break;
-
-        case 'KeyA':
-          this.keys.a.pressed = false;
-          break;
-
-        case 'KeyS':
-          this.keys.s.pressed = false;
-          break;
-
-        case 'KeyD':
-          this.keys.d.pressed = false;
+          if (!['right', 'left'].includes(player.direction)) {
+            this.sequenceNumber++;
+            this.playerInputs.push({
+              sequenceNumber: this.sequenceNumber,
+              dx: speed,
+              dy: 0,
+            });
+            player.x += speed;
+            player.cells.unshift({ x: player.x, y: player.y });
+            player.cells.pop();
+            this.socket.emit('keydown', {
+              keycode: 'KeyD',
+              sequenceNumber: this.sequenceNumber,
+            });
+          }
           break;
       }
     });

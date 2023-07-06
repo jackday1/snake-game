@@ -63,6 +63,7 @@ export const connection = (socket) => {
   socket.on('disconnect', () => {
     const { userId } = socket;
     delete backEndPlayers[userId];
+    _io.emit('updatePlayers', { backEndPlayers, food });
     if (!Object.keys(backEndPlayers).length) {
       clearInterval(gameTickInterval);
       gameTickInterval = null;
