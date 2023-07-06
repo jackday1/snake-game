@@ -35,7 +35,7 @@ export const connection = (socket) => {
   socket.on('join', () => {
     const { userId, userUsername } = socket;
     if (!backEndPlayers[userId]) {
-      const x = randomNumber(0, maxX);
+      const x = randomNumber(0, Math.round(maxX / 2));
       const y = randomNumber(0, maxY);
       backEndPlayers[userId] = {
         username: userUsername,
@@ -43,8 +43,8 @@ export const connection = (socket) => {
         y: Math.max(0, y - (y % speed)),
         cells: [
           { x, y },
-          { x: x - 1, y },
-          { x: x - 2, y },
+          { x: x - speed, y },
+          { x: x - speed, y },
         ],
         color: `hsl(${360 * Math.random()}, 100%, 50%)`,
         sequenceNumber: 0,
