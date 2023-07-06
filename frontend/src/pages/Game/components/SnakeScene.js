@@ -139,6 +139,7 @@ export class SnakeScene extends Phaser.Scene {
               dy: -speed,
             });
             player.y -= speed;
+            player.direction = 'up';
             player.cells.unshift({ x: player.x, y: player.y });
             player.cells.pop();
             this.socket.emit('keydown', {
@@ -157,6 +158,7 @@ export class SnakeScene extends Phaser.Scene {
               dy: 0,
             });
             player.x -= speed;
+            player.direction = 'left';
             player.cells.unshift({ x: player.x, y: player.y });
             player.cells.pop();
             this.socket.emit('keydown', {
@@ -175,6 +177,7 @@ export class SnakeScene extends Phaser.Scene {
               dy: speed,
             });
             player.y += speed;
+            player.direction = 'down';
             player.cells.unshift({ x: player.x, y: player.y });
             player.cells.pop();
             this.socket.emit('keydown', {
@@ -193,6 +196,7 @@ export class SnakeScene extends Phaser.Scene {
               dy: 0,
             });
             player.x += speed;
+            player.direction = 'right';
             player.cells.unshift({ x: player.x, y: player.y });
             player.cells.pop();
             this.socket.emit('keydown', {
