@@ -15,7 +15,7 @@ const GameView = () => {
 
   useEffect(() => {
     const config = {
-      type: Phaser.CANVAS,
+      type: Phaser.WEBGL,
       width,
       height,
       backgroundColor: '#f0f4c3',
