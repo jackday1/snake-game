@@ -53,7 +53,7 @@ export const connection = (socket) => {
     }
 
     if (!gameTickInterval && Object.keys(backEndPlayers).length) {
-      gameTickInterval = setInterval(gameTick, tickRate * 100);
+      gameTickInterval = setInterval(gameTick, tickRate);
     }
 
     _io.emit('updatePlayers', { backEndPlayers, food });

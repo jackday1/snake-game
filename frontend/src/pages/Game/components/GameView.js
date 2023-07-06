@@ -35,6 +35,8 @@ const GameView = () => {
     };
 
     addListeners(game);
+
+    return () => game.destroy();
   }, []);
 
   return (

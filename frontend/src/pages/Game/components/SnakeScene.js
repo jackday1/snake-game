@@ -32,7 +32,6 @@ class Snake {
 }
 
 export class SnakeScene extends Phaser.Scene {
-  cursors;
   userId = localStorage.getItem(ACCESS_TOKEN);
   frontEndPlayers = {};
   sequenceNumber = 0;
