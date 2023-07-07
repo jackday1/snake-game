@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Button, Typography, alpha, useTheme } from '@mui/material';
 import { useSnackbar } from 'notistack';
+import randomstring from 'randomstring';
 
-import { USERNAME } from '../../utils/constants';
+import { ACCESS_TOKEN, USERNAME } from '../../utils/constants';
 
 const Home = () => {
   const theme = useTheme();
@@ -17,6 +18,7 @@ const Home = () => {
       return;
     }
     localStorage.setItem(USERNAME, username);
+    localStorage.setItem(ACCESS_TOKEN, randomstring.generate(10));
     navigate('/game');
   };
 

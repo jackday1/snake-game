@@ -207,7 +207,6 @@ export class SnakeScene extends Phaser.Scene {
   }
 
   update(time, delta) {
-    console.log(delta);
     if (!Object.keys(this.frontEndPlayers).length) return;
 
     for (const id in this.frontEndPlayers) {
