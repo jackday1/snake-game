@@ -38,7 +38,6 @@ export const middleware = (socket, next) => {
 
 export const connection = (socket) => {
   console.log(`user connected, id: ${socket.id}`);
-  emitUpdateGameState();
 
   socket.on('join', () => {
     const { userId, userUsername } = socket;

@@ -114,12 +114,12 @@ export class SnakeScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.audio('bg', 'audios/bg-audio.mp3');
-    this.load.audio('game-over', 'audios/game-over.mp3');
-    this.load.audio('beep', 'audios/beep.mp3');
     this.load.image('background', 'images/galaxy.jpeg');
     this.load.image('food', 'images/food.png');
     this.load.image('body', 'images/snake.png');
+    this.load.audio('bg', 'audios/bg-audio.mp3');
+    this.load.audio('game-over', 'audios/game-over.mp3');
+    this.load.audio('beep', 'audios/beep.mp3');
   }
 
   createOverlay(text = 'Press Enter to play!') {
