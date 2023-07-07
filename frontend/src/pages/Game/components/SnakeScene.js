@@ -135,6 +135,8 @@ export class SnakeScene extends Phaser.Scene {
         .setOrigin(0.5),
     };
     this.overlay.bg.fill(0x000000, 0.5);
+    this.overlay.bg.depth = 1;
+    this.overlay.text.depth = 1;
   }
 
   removeOverlay() {
@@ -148,7 +150,8 @@ export class SnakeScene extends Phaser.Scene {
     this.bgAudio = this.sound.add('bg', { loop: true });
     this.beepAudio = this.sound.add('beep', { loop: false });
     this.gameOverAudio = this.sound.add('game-over', { loop: false });
-    this.add.image(0, 0, 'background').setOrigin(0, 0);
+    const background = this.add.image(0, 0, 'background').setOrigin(0, 0);
+    background.depth = -1;
     this.createOverlay();
 
     this.input.keyboard.on('keydown', (event) => {

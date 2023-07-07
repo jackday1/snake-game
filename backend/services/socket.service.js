@@ -110,6 +110,10 @@ export const connection = (socket) => {
         break;
     }
   });
+
+  socket.on('getLeaders', () => {
+    _io.emit('updateLeaders', { leaders });
+  });
 };
 
 const emitUpdateGameState = () =>
