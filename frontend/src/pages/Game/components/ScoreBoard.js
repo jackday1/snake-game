@@ -2,23 +2,14 @@ import { useState, useCallback, useImperativeHandle, forwardRef } from 'react';
 import { Box, Typography } from '@mui/material';
 
 const ScoreBoard = ({}, ref) => {
-  const [players, setPlayers] = useState([]);
+  const [leaders, setLeaders] = useState([]);
 
-  const updatePlayers = useCallback((newPlayers) => {
-    const sortedPlayers = Object.values(newPlayers)
-      .sort((item1, item2) => item2.score - item1.score)
-      .slice(0, 3)
-      .map((item) => ({
-        id: item.id,
-        username: item.username,
-        score: item.cells.length,
-      }));
-
-    setPlayers(sortedPlayers);
+  const updateLeaders = useCallback((newLeaders) => {
+    setLeaders(newLeaders);
   }, []);
 
   useImperativeHandle(ref, () => ({
-    updatePlayers,
+    updateLeaders,
   }));
 
   return (
@@ -54,8 +45,8 @@ const ScoreBoard = ({}, ref) => {
         >
           Top 3 players
         </Typography>
-        {!!players.length ? (
-          players.map((player, index) => (
+        {!!leaders.length ? (
+          leaders.map((player, index) => (
             <Typography
               key={player.id}
               fontSize={{ xs: '18px', sm: '24px' }}

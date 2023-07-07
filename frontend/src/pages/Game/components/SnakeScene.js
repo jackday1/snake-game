@@ -42,56 +42,61 @@ export class SnakeScene extends Phaser.Scene {
 
     this.socket = createSocketInstance();
 
-    this.socket.on('updatePlayers', ({ backEndPlayers, food, time }) => {
-      // uncomment to see how many ms to send event from server to client
-      // const now = Date.now();
-      // console.log({ now, diff: now - time });
-      if (food) {
-        if (!this.food) {
-          this.food = new Food(this, food.x, food.y);
-          this.children.add(this.food);
-        } else {
-          this.food.setPosition(food.x + size / 2, food.y + size / 2);
-        }
-      }
-      for (const id in backEndPlayers) {
-        const backEndPlayer = backEndPlayers[id];
-        if (!backEndPlayer) continue;
-
-        if (!this.frontEndPlayers[id]) {
-          this.frontEndPlayers[id] = new Snake(
-            this,
-            backEndPlayer.x,
-            backEndPlayer.y,
-            backEndPlayer.cells,
-            backEndPlayer.color
-          );
-        } else {
-          if (id === this.userId) {
-            // if a player already exists
-            this.frontEndPlayers[id].x = backEndPlayer.x;
-            this.frontEndPlayers[id].y = backEndPlayer.y;
-            this.frontEndPlayers[id].cells = backEndPlayer.cells;
+    this.socket.on(
+      'updatePlayers',
+      ({ backEndPlayers, food, leaders, leaderChanged, time }) => {
+        // uncomment to see how many ms to send event from server to client
+        // const now = Date.now();
+        // console.log({ now, diff: now - time });
+        if (food) {
+          if (!this.food) {
+            this.food = new Food(this, food.x, food.y);
+            this.children.add(this.food);
           } else {
-            // for all other players
-            this.frontEndPlayers[id].x = backEndPlayer.x;
-            this.frontEndPlayers[id].y = backEndPlayer.y;
-            this.frontEndPlayers[id].cells = backEndPlayer.cells;
+            this.food.setPosition(food.x + size / 2, food.y + size / 2);
           }
         }
-      }
+        for (const id in backEndPlayers) {
+          const backEndPlayer = backEndPlayers[id];
+          if (!backEndPlayer) continue;
 
-      for (const id in this.frontEndPlayers) {
-        if (!backEndPlayers[id]) {
-          const snake = this.frontEndPlayers[id];
-          const children = snake.body.getChildren();
-          children.map((child) => snake.body.killAndHide(child));
-          delete this.frontEndPlayers[id];
+          if (!this.frontEndPlayers[id]) {
+            this.frontEndPlayers[id] = new Snake(
+              this,
+              backEndPlayer.x,
+              backEndPlayer.y,
+              backEndPlayer.cells,
+              backEndPlayer.color
+            );
+          } else {
+            if (id === this.userId) {
+              // if a player already exists
+              this.frontEndPlayers[id].x = backEndPlayer.x;
+              this.frontEndPlayers[id].y = backEndPlayer.y;
+              this.frontEndPlayers[id].cells = backEndPlayer.cells;
+            } else {
+              // for all other players
+              this.frontEndPlayers[id].x = backEndPlayer.x;
+              this.frontEndPlayers[id].y = backEndPlayer.y;
+              this.frontEndPlayers[id].cells = backEndPlayer.cells;
+            }
+          }
+        }
+
+        for (const id in this.frontEndPlayers) {
+          if (!backEndPlayers[id]) {
+            const snake = this.frontEndPlayers[id];
+            const children = snake.body.getChildren();
+            children.map((child) => snake.body.killAndHide(child));
+            delete this.frontEndPlayers[id];
+          }
+        }
+
+        if (leaderChanged) {
+          this.game.events.emit(Events.UpdateLeaders, leaders);
         }
       }
-
-      this.game.events.emit(Events.UpdatePlayers, backEndPlayers);
-    });
+    );
 
     this.socket.on('grow', ({ userId }) => {
       if (userId == this.userId) {
@@ -146,7 +151,6 @@ export class SnakeScene extends Phaser.Scene {
     this.add.image(0, 0, 'background').setOrigin(0, 0);
     this.createOverlay();
 
-    // this.add.image(0, 0, 'background').setOrigin(0.5, 0.5);
     this.input.keyboard.on('keydown', (event) => {
       const player = this.frontEndPlayers[this.userId];
       if (!player) {

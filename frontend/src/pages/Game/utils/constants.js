@@ -1,4 +1,4 @@
 export const Events = {
-  UpdatePlayers: 'UpdatePlayers',
+  UpdateLeaders: 'UpdateLeaders',
   StartGame: 'StartGame',
 };

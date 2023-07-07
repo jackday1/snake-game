@@ -9,6 +9,9 @@ const maxY = height - size;
 
 let usernames = {};
 let backEndPlayers = {};
+let leaders = [];
+let minLeaderScore = 0;
+let leaderChanged = true;
 let food = null;
 let gameTickInterval;
 
@@ -35,6 +38,7 @@ export const middleware = (socket, next) => {
 
 export const connection = (socket) => {
   console.log(`user connected, id: ${socket.id}`);
+  emitUpdateGameState();
 
   socket.on('join', () => {
     const { userId, userUsername } = socket;
@@ -60,13 +64,13 @@ export const connection = (socket) => {
       gameTickInterval = setInterval(gameTick, tickRate);
     }
 
-    _io.emit('updatePlayers', { backEndPlayers, food, time: Date.now() });
+    emitUpdateGameState();
   });
 
   socket.on('disconnect', () => {
     const { userId } = socket;
     delete backEndPlayers[userId];
-    _io.emit('updatePlayers', { backEndPlayers, food, time: Date.now() });
+    emitUpdateGameState();
     if (!Object.keys(backEndPlayers).length) {
       clearInterval(gameTickInterval);
       gameTickInterval = null;
@@ -108,6 +112,15 @@ export const connection = (socket) => {
     }
   });
 };
+
+const emitUpdateGameState = () =>
+  _io.emit('updatePlayers', {
+    backEndPlayers,
+    food,
+    leaders,
+    leaderChanged,
+    time: Date.now(),
+  });
 
 const collideWithFood = (player) => {
   return player.x === food?.x && player.y === food?.y;
@@ -164,10 +177,29 @@ const gameTick = () => {
     if (collideWithFood(player)) {
       food = null;
       _io.emit('grow', { userId: id });
+      const score = player.cells.length - 3;
+      if (score > minLeaderScore) {
+        // update leaderboard
+        leaderChanged = true;
+        if (leaders.length > 3) {
+          minLeaderScore = score;
+        }
+        const record = leaders.find((item) => item.id === id);
+        if (record) {
+          if (record.score < score) {
+            record.score = score;
+          }
+        } else {
+          if (leaders.length >= 3) {
+            leaders.pop();
+          }
+          leaders.push({ id, username: player.username, score });
+        }
+      }
     } else {
       player.cells.pop();
     }
   }
 
-  _io.emit('updatePlayers', { backEndPlayers, food, time: Date.now() });
+  emitUpdateGameState();
 };

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Box, Grid } from '@mui/material';
+import { Box } from '@mui/material';
 import Phaser from 'phaser';
 
 import SnakeScene from './SnakeScene';
@@ -28,14 +28,14 @@ const GameView = () => {
     const game = new Phaser.Game(config);
 
     const addListeners = (game) => {
-      game.events.on(Events.UpdatePlayers, (players) => {
-        scoreBoardRef.current.updatePlayers(players);
+      game.events.on(Events.UpdateLeaders, (leaders) => {
+        scoreBoardRef.current?.updateLeaders(leaders);
       });
     };
 
     addListeners(game);
 
-    return () => game.destroy();
+    return () => game.destroy(true);
   }, []);
 
   return (
