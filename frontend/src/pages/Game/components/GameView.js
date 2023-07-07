@@ -35,7 +35,7 @@ const GameView = () => {
 
     addListeners(game);
 
-    return () => game.destroy(true);
+    return () => game.scene.destroy();
   }, []);
 
   return (

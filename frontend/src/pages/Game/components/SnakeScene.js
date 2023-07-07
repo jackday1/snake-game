@@ -34,6 +34,7 @@ class Snake {
 export class SnakeScene extends Phaser.Scene {
   userId = localStorage.getItem(ACCESS_TOKEN);
   frontEndPlayers = {};
+  gameReady = false;
 
   constructor() {
     super({
@@ -45,6 +46,7 @@ export class SnakeScene extends Phaser.Scene {
     this.socket.on(
       'updatePlayers',
       ({ backEndPlayers, food, leaders, leaderChanged, time }) => {
+        if (!this.gameReady) return;
         // uncomment to see how many ms to send event from server to client
         // const now = Date.now();
         // console.log({ now, diff: now - time });
@@ -99,12 +101,14 @@ export class SnakeScene extends Phaser.Scene {
     );
 
     this.socket.on('grow', ({ userId }) => {
+      if (!this.gameReady) return;
       if (userId == this.userId) {
         this.beepAudio.play();
       }
     });
 
     this.socket.on('dead', ({ userId }) => {
+      if (!this.gameReady) return;
       if (userId === this.userId) {
         this.createOverlay('Game Over! Press Enter to try again.');
         this.bgAudio.stop();
@@ -153,6 +157,7 @@ export class SnakeScene extends Phaser.Scene {
     const background = this.add.image(0, 0, 'background').setOrigin(0, 0);
     background.depth = -1;
     this.createOverlay();
+    this.gameReady = true;
 
     this.input.keyboard.on('keydown', (event) => {
       const player = this.frontEndPlayers[this.userId];
@@ -202,6 +207,7 @@ export class SnakeScene extends Phaser.Scene {
   }
 
   update(time, delta) {
+    console.log(delta);
     if (!Object.keys(this.frontEndPlayers).length) return;
 
     for (const id in this.frontEndPlayers) {
