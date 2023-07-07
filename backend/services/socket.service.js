@@ -16,11 +16,15 @@ export const middleware = (socket, next) => {
   try {
     // use token to authentication user
     // set user info to socket
-    const { token } = socket.handshake.query;
+    const { token, username } = socket.handshake.query;
 
     socket.userId = token;
-    if (!usernames[token]) {
-      usernames[token] = faker.internet.userName();
+    if (!username) {
+      if (!usernames[token]) {
+        usernames[token] = faker.internet.userName();
+      }
+    } else {
+      usernames[token] = username;
     }
     socket.userUsername = usernames[token];
     next();
@@ -38,6 +42,7 @@ export const connection = (socket) => {
       const x = randomNumber(0, Math.round(maxX / 2));
       const y = randomNumber(0, maxY);
       backEndPlayers[userId] = {
+        id: userId,
         username: userUsername,
         x: Math.max(0, x - (x % speed)),
         y: Math.max(0, y - (y % speed)),
@@ -158,6 +163,7 @@ const gameTick = () => {
     // check if player can eat food
     if (collideWithFood(player)) {
       food = null;
+      _io.emit('grow', { userId: id });
     } else {
       player.cells.pop();
     }

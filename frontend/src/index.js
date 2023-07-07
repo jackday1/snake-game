@@ -14,7 +14,15 @@ const queryClient = new QueryClient({
   },
 });
 
-const theme = createTheme();
+const theme = createTheme({
+  colors: {
+    bg: '#60237d',
+    main: '#b0177b',
+  },
+  typography: {
+    fontFamily: "'VT323', monospace",
+  },
+});
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

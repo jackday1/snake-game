@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Box, Grid, Typography } from '@mui/material';
-import { red } from '@mui/material/colors';
+import { Box, Grid } from '@mui/material';
 import Phaser from 'phaser';
 
 import SnakeScene from './SnakeScene';
@@ -18,7 +17,7 @@ const GameView = () => {
       type: Phaser.AUTO,
       width,
       height,
-      backgroundColor: '#f0f4c3',
+      backgroundColor: '#000',
       parent: 'game',
       scene: [SnakeScene],
       scale: {
@@ -40,24 +39,27 @@ const GameView = () => {
   }, []);
 
   return (
-    <Box>
-      <Grid container spacing={1}>
-        <Grid item xs={9}>
-          <Typography>Press Enter to play!</Typography>
-          <Box
-            id="game"
-            className="game-screen"
-            sx={{
-              '& canvas': {
-                border: `2px solid ${red[500]}`,
-              },
-            }}
-          />
-        </Grid>
-        <Grid item xs={3}>
-          <ScoreBoard ref={scoreBoardRef} />
-        </Grid>
-      </Grid>
+    <Box
+      height="100%"
+      display="flex"
+      flexDirection="column"
+      justifyContent="center"
+      alignItems="center"
+    >
+      <Box display="flex" gap={2}>
+        <Box
+          id="game"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          sx={{
+            '& canvas': {
+              border: `2px solid white`,
+            },
+          }}
+        />
+        <ScoreBoard ref={scoreBoardRef} />
+      </Box>
     </Box>
   );
 };

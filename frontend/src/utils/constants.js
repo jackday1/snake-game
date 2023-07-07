@@ -1,1 +1,2 @@
-export const ACCESS_TOKEN = 'DEMO_SNAKE_ACCESS_TOKEN';
+export const ACCESS_TOKEN = 'J_SNAKE_ACCESS_TOKEN';
+export const USERNAME = 'J_SNAKE_USERNAME';

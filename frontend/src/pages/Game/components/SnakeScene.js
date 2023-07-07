@@ -5,7 +5,7 @@ import { Events } from '../utils/constants';
 import gameConfigs from '../../../configs/game.config';
 import { ACCESS_TOKEN } from '../../../utils/constants';
 
-const { speed, size, tickRate } = gameConfigs;
+const { width, height, speed, size, tickRate } = gameConfigs;
 
 class Food extends Phaser.GameObjects.Image {
   constructor(scene, x, y) {
@@ -93,23 +93,66 @@ export class SnakeScene extends Phaser.Scene {
       this.game.events.emit(Events.UpdatePlayers, backEndPlayers);
     });
 
+    this.socket.on('grow', ({ userId }) => {
+      if (userId == this.userId) {
+        this.beepAudio.play();
+      }
+    });
+
     this.socket.on('dead', ({ userId }) => {
       if (userId === this.userId) {
-        alert('You lost!');
+        this.createOverlay('Game Over! Press Enter to try again.');
+        this.bgAudio.stop();
+        this.gameOverAudio.play();
       }
     });
   }
 
   preload() {
-    this.load.image('food', 'images/heart20.png');
+    this.load.audio('bg', 'audios/bg-audio.mp3');
+    this.load.audio('game-over', 'audios/game-over.mp3');
+    this.load.audio('beep', 'audios/beep.mp3');
+    this.load.image('background', 'images/galaxy.jpeg');
+    this.load.image('food', 'images/food.png');
     this.load.image('body', 'images/snake.png');
   }
 
+  createOverlay(text = 'Press Enter to play!') {
+    if (this.overlay) return;
+    this.overlay = {
+      bg: this.add.renderTexture(0, 0, width, height),
+      text: this.add
+        .text(width / 2, height / 2, text, {
+          fontFamily: "'VT323', monospace",
+          fontSize: '48px',
+          color: 'white',
+        })
+        .setOrigin(0.5),
+    };
+    this.overlay.bg.fill(0x000000, 0.5);
+  }
+
+  removeOverlay() {
+    if (!this.overlay) return;
+    this.overlay.bg.destroy(true);
+    this.overlay.text.destroy(true);
+    this.overlay = null;
+  }
+
   create() {
+    this.bgAudio = this.sound.add('bg', { loop: true });
+    this.beepAudio = this.sound.add('beep', { loop: false });
+    this.gameOverAudio = this.sound.add('game-over', { loop: false });
+    this.add.image(0, 0, 'background').setOrigin(0, 0);
+    this.createOverlay();
+
+    // this.add.image(0, 0, 'background').setOrigin(0.5, 0.5);
     this.input.keyboard.on('keydown', (event) => {
       const player = this.frontEndPlayers[this.userId];
       if (!player) {
         if (event.code === 'Enter') {
+          this.removeOverlay();
+          this.bgAudio.play();
           this.socket.emit('join');
         }
         return;
