@@ -241,7 +241,6 @@ export class SnakeScene extends Phaser.Scene {
           const newPart = snake.body.create(cell.x, cell.y, 'body');
           newPart.setOrigin(0);
           newPart.tint = Number(`0x${snake.color}`);
-          console.log(Number(`0x${snake.color}`));
         }
       });
     }
