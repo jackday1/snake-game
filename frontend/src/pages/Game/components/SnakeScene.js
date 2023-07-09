@@ -28,6 +28,7 @@ class Snake {
     this.body = scene.add.group();
     this.head = this.body.create(x, y, 'body');
     this.head.setOrigin(0);
+    this.head.tint = Number(`0x${color}`);
   }
 }
 
@@ -70,12 +71,29 @@ export class SnakeScene extends Phaser.Scene {
               backEndPlayer.cells,
               backEndPlayer.color
             );
+
+            // update current player
+            this.game.events.emit(Events.UpdateCurrentPlayer, {
+              username: backEndPlayer.username,
+              color: backEndPlayer.color,
+              score: backEndPlayer.cells.length,
+            });
           } else {
             if (id === this.userId) {
               // if a player already exists
               this.frontEndPlayers[id].x = backEndPlayer.x;
               this.frontEndPlayers[id].y = backEndPlayer.y;
               this.frontEndPlayers[id].cells = backEndPlayer.cells;
+
+              // update current player
+              if (
+                this.frontEndPlayers[id].cells?.length !==
+                backEndPlayer.cells?.length
+              ) {
+                this.game.events.emit(Events.UpdateCurrentPlayer, {
+                  score: backEndPlayer.cells?.length,
+                });
+              }
             } else {
               // for all other players
               this.frontEndPlayers[id].x = backEndPlayer.x;
@@ -104,6 +122,9 @@ export class SnakeScene extends Phaser.Scene {
       if (!this.gameReady) return;
       if (userId == this.userId) {
         this.beepAudio.play();
+        this.game.events.emit(Events.UpdateCurrentPlayer, {
+          score: this.frontEndPlayers[userId].cells?.length,
+        });
       }
     });
 
@@ -219,6 +240,8 @@ export class SnakeScene extends Phaser.Scene {
         } else {
           const newPart = snake.body.create(cell.x, cell.y, 'body');
           newPart.setOrigin(0);
+          newPart.tint = Number(`0x${snake.color}`);
+          console.log(Number(`0x${snake.color}`));
         }
       });
     }

@@ -7,19 +7,27 @@ import {
 } from 'react';
 import { Box, Typography } from '@mui/material';
 
-import { USERNAME } from '../../../utils/constants';
 import { createSocketInstance } from '../../../services/socket.service';
 
 const ScoreBoard = ({}, ref) => {
   const [loaded, setLoaded] = useState(false);
   const [leaders, setLeaders] = useState([]);
+  const [currentPlayer, setCurrentPlayer] = useState(null);
 
   const updateLeaders = useCallback((newLeaders) => {
     setLeaders(newLeaders);
   }, []);
 
+  const updateCurrentPlayer = useCallback(
+    (updatedCurrentPlayer) => {
+      setCurrentPlayer({ ...(currentPlayer || {}), ...updatedCurrentPlayer });
+    },
+    [currentPlayer]
+  );
+
   useImperativeHandle(ref, () => ({
     updateLeaders,
+    updateCurrentPlayer,
   }));
 
   useEffect(() => {
@@ -38,15 +46,36 @@ const ScoreBoard = ({}, ref) => {
 
   return (
     <Box width="400px" display="flex" flexDirection="column" gap={3}>
-      <Box>
-        <Typography
-          fontSize={{ xs: '24px', sm: '36px' }}
-          fontWeight={700}
-          color="white"
-        >
-          Your username: {localStorage.getItem(USERNAME)}
-        </Typography>
-      </Box>
+      {currentPlayer && (
+        <Box>
+          <Box display="flex" alignItems="center" gap={2}>
+            <Box
+              width="20px"
+              borderRadius="50%"
+              bgcolor={
+                currentPlayer?.color
+                  ? `#${currentPlayer.color.toString(16)}`
+                  : 'transparent'
+              }
+              sx={{ aspectRatio: '1/1' }}
+            />
+            <Typography
+              fontSize={{ xs: '24px', sm: '36px' }}
+              fontWeight={700}
+              color="white"
+            >
+              {currentPlayer?.username}
+            </Typography>
+          </Box>
+          <Typography
+            fontSize={{ xs: '24px', sm: '36px' }}
+            fontWeight={700}
+            color="white"
+          >
+            Score: {currentPlayer?.score}
+          </Typography>
+        </Box>
+      )}
       <Box display="flex" flexDirection="column">
         <Typography
           fontSize={{ xs: '24px', sm: '36px' }}

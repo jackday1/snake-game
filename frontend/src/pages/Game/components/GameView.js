@@ -31,6 +31,10 @@ const GameView = () => {
       game.events.on(Events.UpdateLeaders, (leaders) => {
         scoreBoardRef.current?.updateLeaders(leaders);
       });
+
+      game.events.on(Events.UpdateCurrentPlayer, (currentPlayer) => {
+        scoreBoardRef.current?.updateCurrentPlayer(currentPlayer);
+      });
     };
 
     addListeners(game);

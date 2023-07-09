@@ -54,7 +54,7 @@ export const connection = (socket) => {
           { x: x - speed, y },
           { x: x - speed, y },
         ],
-        color: `hsl(${360 * Math.random()}, 100%, 50%)`,
+        color: `${Math.floor(Math.random() * 16777215).toString(16)}`,
         direction: 'right',
       };
     }
