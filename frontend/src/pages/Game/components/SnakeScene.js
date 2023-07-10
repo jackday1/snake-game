@@ -53,7 +53,6 @@ export class SnakeScene extends Phaser.Scene {
         // const now = Date.now();
         // console.log({ now, diff: now - time });
         const keys = foods.map((food) => `${food.x}-${food.y}`);
-        console.log(keys);
 
         // remove eated foods
         Object.values(this.foods)
