@@ -52,11 +52,7 @@ const ScoreBoard = ({}, ref) => {
             <Box
               width="20px"
               borderRadius="50%"
-              bgcolor={
-                currentPlayer?.color
-                  ? `#${currentPlayer.color.toString(16)}`
-                  : 'transparent'
-              }
+              bgcolor={currentPlayer?.color || 'transparent'}
               sx={{ aspectRatio: '1/1' }}
             />
             <Typography

@@ -28,7 +28,7 @@ class Snake {
     this.body = scene.add.group();
     this.head = this.body.create(x, y, 'body');
     this.head.setOrigin(0);
-    this.head.tint = Number(`0x${color}`);
+    this.head.tint = Phaser.Display.Color.HexStringToColor(color).color;
   }
 }
 
@@ -240,7 +240,9 @@ export class SnakeScene extends Phaser.Scene {
         } else {
           const newPart = snake.body.create(cell.x, cell.y, 'body');
           newPart.setOrigin(0);
-          newPart.tint = Number(`0x${snake.color}`);
+          newPart.tint = Phaser.Display.Color.HexStringToColor(
+            snake.color
+          ).color;
         }
       });
     }
