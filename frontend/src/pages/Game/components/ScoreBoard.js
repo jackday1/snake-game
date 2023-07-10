@@ -45,7 +45,7 @@ const ScoreBoard = ({}, ref) => {
   }, []);
 
   return (
-    <Box width="400px" display="flex" flexDirection="column" gap={3}>
+    <Box display="flex" flexDirection="column" gap={3}>
       {currentPlayer && (
         <Box>
           <Box display="flex" alignItems="center" gap={2}>

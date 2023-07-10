@@ -76,7 +76,7 @@ export class SnakeScene extends Phaser.Scene {
             this.game.events.emit(Events.UpdateCurrentPlayer, {
               username: backEndPlayer.username,
               color: backEndPlayer.color,
-              score: backEndPlayer.cells.length,
+              score: backEndPlayer.cells.length - 3,
             });
           } else {
             if (id === this.userId) {
@@ -91,7 +91,7 @@ export class SnakeScene extends Phaser.Scene {
                 backEndPlayer.cells?.length
               ) {
                 this.game.events.emit(Events.UpdateCurrentPlayer, {
-                  score: backEndPlayer.cells?.length,
+                  score: backEndPlayer.cells?.length - 3,
                 });
               }
             } else {
@@ -123,7 +123,7 @@ export class SnakeScene extends Phaser.Scene {
       if (userId == this.userId) {
         this.beepAudio.play();
         this.game.events.emit(Events.UpdateCurrentPlayer, {
-          score: this.frontEndPlayers[userId].cells?.length,
+          score: this.frontEndPlayers[userId].cells?.length - 3,
         });
       }
     });
@@ -139,7 +139,7 @@ export class SnakeScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image('background', 'images/galaxy.jpeg');
+    // this.load.image('background', 'images/galaxy.jpeg');
     this.load.image('food', 'images/food.png');
     this.load.image('body', 'images/snake.png');
     this.load.audio('bg', 'audios/bg-audio.mp3');
@@ -175,8 +175,8 @@ export class SnakeScene extends Phaser.Scene {
     this.bgAudio = this.sound.add('bg', { loop: true });
     this.beepAudio = this.sound.add('beep', { loop: false });
     this.gameOverAudio = this.sound.add('game-over', { loop: false });
-    const background = this.add.image(0, 0, 'background').setOrigin(0, 0);
-    background.depth = -1;
+    // const background = this.add.image(0, 0, 'background').setOrigin(0, 0);
+    // background.depth = -1;
     this.createOverlay();
     this.gameReady = true;
 

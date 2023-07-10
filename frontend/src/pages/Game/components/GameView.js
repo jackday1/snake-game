@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Box } from '@mui/material';
+import { Box, Grid } from '@mui/material';
 import Phaser from 'phaser';
 
 import SnakeScene from './SnakeScene';
@@ -20,9 +20,6 @@ const GameView = () => {
       backgroundColor: '#000',
       parent: 'game',
       scene: [SnakeScene],
-      scale: {
-        zoom: 0.6,
-      },
     };
 
     const game = new Phaser.Game(config);
@@ -43,27 +40,29 @@ const GameView = () => {
   }, []);
 
   return (
-    <Box
-      height="100%"
-      display="flex"
-      flexDirection="column"
-      justifyContent="center"
-      alignItems="center"
-    >
-      <Box display="flex" gap={2}>
-        <Box
-          id="game"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          sx={{
-            '& canvas': {
-              border: `2px solid white`,
-            },
-          }}
-        />
-        <ScoreBoard ref={scoreBoardRef} />
-      </Box>
+    <Box>
+      <Grid container spacing={2}>
+        <Grid item xs={9}>
+          <Box
+            id="game"
+            width="100%"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            sx={{
+              '& canvas': {
+                // border: `2px solid white`,
+                border: '15px solid rgb(28, 49, 73)',
+                width: '100%',
+                height: '100%',
+              },
+            }}
+          />
+        </Grid>
+        <Grid item xs={3}>
+          <ScoreBoard ref={scoreBoardRef} />
+        </Grid>
+      </Grid>
     </Box>
   );
 };
