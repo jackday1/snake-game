@@ -123,7 +123,7 @@ export class SnakeScene extends Phaser.Scene {
       if (userId == this.userId) {
         this.beepAudio.play();
         this.game.events.emit(Events.UpdateCurrentPlayer, {
-          score: this.frontEndPlayers[userId].cells?.length - 3,
+          score: this.frontEndPlayers[userId].cells?.length - 3 + 1,
         });
       }
     });
