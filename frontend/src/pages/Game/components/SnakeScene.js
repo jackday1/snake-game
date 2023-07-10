@@ -88,12 +88,14 @@ export class SnakeScene extends Phaser.Scene {
               backEndPlayer.color
             );
 
-            // update current player
-            this.game.events.emit(Events.UpdateCurrentPlayer, {
-              username: backEndPlayer.username,
-              color: backEndPlayer.color,
-              score: backEndPlayer.cells.length - 3,
-            });
+            if (id === this.userId) {
+              // update current player
+              this.game.events.emit(Events.UpdateCurrentPlayer, {
+                username: backEndPlayer.username,
+                color: backEndPlayer.color,
+                score: backEndPlayer.cells.length - 3,
+              });
+            }
           } else {
             if (id === this.userId) {
               // if a player already exists
