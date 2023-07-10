@@ -5,7 +5,7 @@ import { Events } from '../utils/constants';
 import gameConfigs from '../../../configs/game.config';
 import { ACCESS_TOKEN } from '../../../utils/constants';
 
-const { width, height, speed, size, tickRate } = gameConfigs;
+const { width, height, size } = gameConfigs;
 
 class Food extends Phaser.GameObjects.Image {
   constructor(scene, x, y) {

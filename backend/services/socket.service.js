@@ -3,9 +3,15 @@ import { faker } from '@faker-js/faker';
 import randomNumber from '../utils/randomNumber.js';
 import gameConfigs from '../configs/game.config.js';
 
-const { width, height, size, speed, tickRate } = gameConfigs;
+const { width, height, size, speed, tickRate, border } = gameConfigs;
 const maxX = width - size;
 const maxY = height - size;
+
+const limitNumber = (num, min, max) => {
+  if (num < min) return max - (Math.abs(max - num) % max);
+  if (num > max) return num % max;
+  return num;
+};
 
 let usernames = {};
 let backEndPlayers = {};
@@ -154,24 +160,38 @@ const gameTick = () => {
     const player = backEndPlayers[id];
     switch (player.direction) {
       case 'up':
-        player.y -= speed;
+        // player.y -= speed
+        player.y = border
+          ? player.y - speed
+          : limitNumber(player.y - speed, 0, maxY);
         break;
       case 'down':
-        player.y += speed;
+        // player.y += speed
+        player.y = border
+          ? player.y + speed
+          : limitNumber(player.y + speed, 0, maxY);
         break;
       case 'left':
-        player.x -= speed;
+        // player.x -= speed;
+        player.x = border
+          ? player.x - speed
+          : limitNumber(player.x - speed, 0, maxX);
         break;
       case 'right':
-        player.x += speed;
+        // player.x += speed;
+        player.x = border
+          ? player.x + speed
+          : limitNumber(player.x + speed, 0, maxX);
         break;
     }
 
     // with border
-    if (player.x < 0 || player.x > maxX || player.y < 0 || player.y > maxY) {
-      delete backEndPlayers[id];
-      _io.emit('dead', { userId: id });
-      continue;
+    if (border) {
+      if (player.x < 0 || player.x > maxX || player.y < 0 || player.y > maxY) {
+        delete backEndPlayers[id];
+        _io.emit('dead', { userId: id });
+        continue;
+      }
     }
 
     player.cells.unshift({ x: player.x, y: player.y });

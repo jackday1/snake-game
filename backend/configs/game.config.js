@@ -4,6 +4,7 @@ const configs = {
   size: 20,
   speed: 5,
   tickRate: 15,
+  border: false,
 };
 
 export default configs;
