@@ -20,6 +20,7 @@ const ScoreBoard = ({}, ref) => {
 
   const updateCurrentPlayer = useCallback(
     (updatedCurrentPlayer) => {
+      console.log(updatedCurrentPlayer?.color);
       setCurrentPlayer({ ...(currentPlayer || {}), ...updatedCurrentPlayer });
     },
     [currentPlayer]

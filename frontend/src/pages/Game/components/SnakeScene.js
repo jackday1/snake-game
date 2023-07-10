@@ -53,6 +53,7 @@ export class SnakeScene extends Phaser.Scene {
         // const now = Date.now();
         // console.log({ now, diff: now - time });
         const keys = foods.map((food) => `${food.x}-${food.y}`);
+        console.log(keys);
 
         // remove eated foods
         Object.values(this.foods)
@@ -60,7 +61,10 @@ export class SnakeScene extends Phaser.Scene {
             (food) =>
               !keys.includes(`${food.x - size / 2}-${food.y - size / 2}`)
           )
-          .map((food) => food.destroy());
+          .map((food) => {
+            food.destroy();
+            delete this.foods[`${food.x - size / 2}-${food.y - size / 2}`];
+          });
 
         // add new foods
         foods.map((food) => {
