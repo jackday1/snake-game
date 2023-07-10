@@ -36,6 +36,7 @@ export class SnakeScene extends Phaser.Scene {
   userId = localStorage.getItem(ACCESS_TOKEN);
   frontEndPlayers = {};
   gameReady = false;
+  foods = {};
 
   constructor() {
     super({
@@ -46,19 +47,31 @@ export class SnakeScene extends Phaser.Scene {
 
     this.socket.on(
       'updatePlayers',
-      ({ backEndPlayers, food, leaders, leaderChanged, time }) => {
+      ({ backEndPlayers, foods, leaders, leaderChanged, time }) => {
         if (!this.gameReady) return;
         // uncomment to see how many ms to send event from server to client
         // const now = Date.now();
         // console.log({ now, diff: now - time });
-        if (food) {
-          if (!this.food) {
-            this.food = new Food(this, food.x, food.y);
-            this.children.add(this.food);
-          } else {
-            this.food.setPosition(food.x + size / 2, food.y + size / 2);
+        const keys = foods.map((food) => `${food.x}-${food.y}`);
+
+        // remove eated foods
+        Object.values(this.foods)
+          .filter(
+            (food) =>
+              !keys.includes(`${food.x - size / 2}-${food.y - size / 2}`)
+          )
+          .map((food) => food.destroy());
+
+        // add new foods
+        foods.map((food) => {
+          const key = `${food.x}-${food.y}`;
+          if (!this.foods[key]) {
+            this.foods[key] = new Food(this, food.x, food.y);
+            this.foods[key].depth = 1;
+            this.children.add(this.foods[key]);
           }
-        }
+        });
+
         for (const id in backEndPlayers) {
           const backEndPlayer = backEndPlayers[id];
           if (!backEndPlayer) continue;

@@ -18,7 +18,7 @@ let backEndPlayers = {};
 let leaders = [];
 let minLeaderScore = 0;
 let leaderChanged = true;
-let food = null;
+let foods = [];
 let gameTickInterval;
 
 export const middleware = (socket, next) => {
@@ -125,36 +125,82 @@ export const connection = (socket) => {
 const emitUpdateGameState = () =>
   _io.emit('updatePlayers', {
     backEndPlayers,
-    food,
+    foods,
     leaders,
     leaderChanged,
     time: Date.now(),
   });
 
 const collideWithFood = (player) => {
-  if (exact) return player.x === food?.x && player.y === food?.y;
+  const foodIndexes = [];
+  if (exact) {
+    foods.map((food, index) => {
+      if (food.x === player.x && food.y === player.y) {
+        foodIndexes.unshift(index);
+      }
+    });
+  } else {
+    foods.map((food, index) => {
+      const border = {
+        top: food.y,
+        bottom: food.y + size,
+        left: food.x,
+        right: food.x + size,
+      };
 
-  const border = {
-    top: food.y,
-    bottom: food.y + size,
-    left: food.x,
-    right: food.x + size,
-  };
+      const corners = [
+        { x: player.x, y: player.y },
+        { x: player.x + size, y: player.y },
+        { x: player.x, y: player.y + size },
+        { x: player.x + size, y: player.y + size },
+      ];
 
-  const corners = [
-    { x: player.x, y: player.y },
-    { x: player.x + size, y: player.y },
-    { x: player.x, y: player.y + size },
-    { x: player.x + size, y: player.y + size },
-  ];
+      const valid = corners.some(
+        (item) =>
+          border.top <= item.y &&
+          item.y <= border.bottom &&
+          border.left <= item.x &&
+          item.x <= border.right
+      );
 
-  return corners.some(
-    (item) =>
-      border.top <= item.y &&
-      item.y <= border.bottom &&
-      border.left <= item.x &&
-      item.x <= border.right
-  );
+      if (valid) {
+        foodIndexes.unshift(index);
+      }
+    });
+  }
+
+  return foodIndexes;
+};
+
+const addCell = (player) => {
+  switch (player.direction) {
+    case 'up':
+      // player.y -= speed
+      player.y = border
+        ? player.y - speed
+        : limitNumber(player.y - speed, 0, maxY);
+      break;
+    case 'down':
+      // player.y += speed
+      player.y = border
+        ? player.y + speed
+        : limitNumber(player.y + speed, 0, maxY);
+      break;
+    case 'left':
+      // player.x -= speed;
+      player.x = border
+        ? player.x - speed
+        : limitNumber(player.x - speed, 0, maxX);
+      break;
+    case 'right':
+      // player.x += speed;
+      player.x = border
+        ? player.x + speed
+        : limitNumber(player.x + speed, 0, maxX);
+      break;
+  }
+
+  player.cells.unshift({ x: player.x, y: player.y });
 };
 
 const gameTick = () => {
@@ -169,58 +215,37 @@ const gameTick = () => {
   if (!Object.keys(backEndPlayers).length) return;
 
   // check food
-  if (!food) {
+  if (!foods.length) {
     const x = randomNumber(0, maxX);
     const y = randomNumber(0, maxY);
-    food = {
+    const newFood = {
       x: Math.max(0, x - (x % speed)),
       y: Math.max(0, y - (y % speed)),
     };
+    foods.push(newFood);
   }
 
   for (const id in backEndPlayers) {
     const player = backEndPlayers[id];
-    switch (player.direction) {
-      case 'up':
-        // player.y -= speed
-        player.y = border
-          ? player.y - speed
-          : limitNumber(player.y - speed, 0, maxY);
-        break;
-      case 'down':
-        // player.y += speed
-        player.y = border
-          ? player.y + speed
-          : limitNumber(player.y + speed, 0, maxY);
-        break;
-      case 'left':
-        // player.x -= speed;
-        player.x = border
-          ? player.x - speed
-          : limitNumber(player.x - speed, 0, maxX);
-        break;
-      case 'right':
-        // player.x += speed;
-        player.x = border
-          ? player.x + speed
-          : limitNumber(player.x + speed, 0, maxX);
-        break;
-    }
+    addCell(player);
 
     // with border
     if (border) {
       if (player.x < 0 || player.x > maxX || player.y < 0 || player.y > maxY) {
+        foods.push(...player.cells.filter((_item, index) => index % 5 === 0)); // each 5 cells of dead snake --> 1 food
         delete backEndPlayers[id];
         _io.emit('dead', { userId: id });
         continue;
       }
     }
 
-    player.cells.unshift({ x: player.x, y: player.y });
-
     // check if player can eat food
-    if (collideWithFood(player)) {
-      food = null;
+    const eatenFoodIndexes = collideWithFood(player);
+    if (eatenFoodIndexes.length) {
+      while (eatenFoodIndexes.length) {
+        foods.splice(eatenFoodIndexes.pop(), 1);
+        if (eatenFoodIndexes.length > 1) addCell(player);
+      }
       _io.emit('grow', { userId: id });
       const score = player.cells.length - 3;
       if (score > minLeaderScore) {
