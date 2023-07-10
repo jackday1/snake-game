@@ -154,6 +154,21 @@ export class SnakeScene extends Phaser.Scene {
         this.gameOverAudio.play();
       }
     });
+
+    this.socket.on('pong', () => {
+      const now = Date.now();
+      const latency = now - this.startPing;
+      this.game.events.emit(Events.PingPong, latency);
+    });
+
+    this.pingpong();
+  }
+
+  pingpong() {
+    this.pingpongInterval = setInterval(() => {
+      this.startPing = Date.now();
+      this.socket.emit('ping');
+    }, 5000);
   }
 
   preload() {
@@ -190,6 +205,10 @@ export class SnakeScene extends Phaser.Scene {
   }
 
   create() {
+    this.game.events.on(Events.ClearPingPong, () => {
+      clearInterval(this.pingpongInterval);
+    });
+
     this.bgAudio = this.sound.add('bg', { loop: true });
     this.beepAudio = this.sound.add('beep', { loop: false });
     this.gameOverAudio = this.sound.add('game-over', { loop: false });

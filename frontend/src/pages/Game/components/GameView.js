@@ -32,11 +32,18 @@ const GameView = () => {
       game.events.on(Events.UpdateCurrentPlayer, (currentPlayer) => {
         scoreBoardRef.current?.updateCurrentPlayer(currentPlayer);
       });
+
+      game.events.on(Events.PingPong, (latency) => {
+        scoreBoardRef.current?.updateLatency(latency);
+      });
     };
 
     addListeners(game);
 
-    return () => game.scene.destroy();
+    return () => {
+      game.events.emit(Events.ClearPingPong);
+      game.scene.destroy();
+    };
   }, []);
 
   return (

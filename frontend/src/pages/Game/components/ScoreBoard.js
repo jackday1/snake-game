@@ -1,5 +1,6 @@
 import {
   useState,
+  useMemo,
   useCallback,
   useEffect,
   useImperativeHandle,
@@ -11,6 +12,7 @@ import { createSocketInstance } from '../../../services/socket.service';
 
 const ScoreBoard = ({}, ref) => {
   const [loaded, setLoaded] = useState(false);
+  const [latency, setLatency] = useState(0);
   const [leaders, setLeaders] = useState([]);
   const [currentPlayer, setCurrentPlayer] = useState(null);
 
@@ -25,10 +27,19 @@ const ScoreBoard = ({}, ref) => {
     [currentPlayer]
   );
 
+  const updateLatency = useCallback((newLatency) => setLatency(newLatency), []);
+
   useImperativeHandle(ref, () => ({
     updateLeaders,
     updateCurrentPlayer,
+    updateLatency,
   }));
+
+  const latencyColor = useMemo(() => {
+    if (latency >= 100) return 'error.main';
+    if (latency >= 50) return 'warning.main';
+    return 'success.main';
+  }, [latency]);
 
   useEffect(() => {
     const socket = createSocketInstance();
@@ -45,7 +56,8 @@ const ScoreBoard = ({}, ref) => {
   }, []);
 
   return (
-    <Box display="flex" flexDirection="column" gap={3}>
+    <Box display="flex" flexDirection="column" gap={1}>
+      <Typography color={latencyColor}>Ping: {latency}ms</Typography>
       {currentPlayer && (
         <Box>
           <Box display="flex" alignItems="center" gap={2}>

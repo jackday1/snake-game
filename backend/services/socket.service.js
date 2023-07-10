@@ -123,6 +123,10 @@ export const connection = (socket) => {
   socket.on('getLeaders', () => {
     _io.emit('updateLeaders', { leaders });
   });
+
+  socket.on('ping', () => {
+    socket.emit('pong');
+  });
 };
 
 const emitUpdateGameState = () =>
@@ -331,6 +335,7 @@ const gameTick = () => {
         if (record) {
           if (record.score < score) {
             record.score = score;
+            leaders.sort((item1, item2) => item2.score - item1.score);
           }
         } else {
           if (leaders.length >= 3) {
