@@ -3,7 +3,7 @@ import { faker } from '@faker-js/faker';
 import randomNumber from '../utils/randomNumber.js';
 import gameConfigs from '../configs/game.config.js';
 
-const { width, height, size, speed, tickRate, border } = gameConfigs;
+const { width, height, size, speed, tickRate, border, exact } = gameConfigs;
 const maxX = width - size;
 const maxY = height - size;
 
@@ -132,7 +132,29 @@ const emitUpdateGameState = () =>
   });
 
 const collideWithFood = (player) => {
-  return player.x === food?.x && player.y === food?.y;
+  if (exact) return player.x === food?.x && player.y === food?.y;
+
+  const border = {
+    top: food.y,
+    bottom: food.y + size,
+    left: food.x,
+    right: food.x + size,
+  };
+
+  const corners = [
+    { x: player.x, y: player.y },
+    { x: player.x + size, y: player.y },
+    { x: player.x, y: player.y + size },
+    { x: player.x + size, y: player.y + size },
+  ];
+
+  return corners.some(
+    (item) =>
+      border.top <= item.y &&
+      item.y <= border.bottom &&
+      border.left <= item.x &&
+      item.x <= border.right
+  );
 };
 
 const gameTick = () => {
