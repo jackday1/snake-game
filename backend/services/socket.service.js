@@ -3,7 +3,8 @@ import { faker } from '@faker-js/faker';
 import randomNumber from '../utils/randomNumber.js';
 import gameConfigs from '../configs/game.config.js';
 
-const { width, height, size, speed, tickRate, border, exact } = gameConfigs;
+const { width, height, size, speed, tickRate, border, exact, suicide } =
+  gameConfigs;
 const maxX = width - size;
 const maxY = height - size;
 
@@ -50,15 +51,17 @@ export const connection = (socket) => {
     if (!backEndPlayers[userId]) {
       const x = randomNumber(0, Math.round(maxX / 2));
       const y = randomNumber(0, maxY);
+      const headX = Math.max(0, x - (x % speed));
+      const headY = Math.max(0, y - (y % speed));
       backEndPlayers[userId] = {
         id: userId,
         username: userUsername,
-        x: Math.max(0, x - (x % speed)),
-        y: Math.max(0, y - (y % speed)),
+        x: headX,
+        y: headY,
         cells: [
-          { x, y },
-          { x: x - speed, y },
-          { x: x - speed, y },
+          { x: headX, y: headY },
+          { x: headX - speed, y: headY },
+          { x: headX - speed, y: headY },
         ],
         color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
         direction: 'right',
@@ -131,6 +134,31 @@ const emitUpdateGameState = () =>
     time: Date.now(),
   });
 
+const touch = (square, item, exactIncluded = false) => {
+  const border = {
+    top: square.y,
+    bottom: square.y + size,
+    left: square.x,
+    right: square.x + size,
+  };
+
+  if (exactIncluded) {
+    return (
+      border.top <= item.y &&
+      item.y <= border.bottom &&
+      border.left <= item.x &&
+      item.x <= border.right
+    );
+  }
+
+  return (
+    border.top < item.y &&
+    item.y < border.bottom &&
+    border.left < item.x &&
+    item.x < border.right
+  );
+};
+
 const collideWithFood = (player) => {
   const foodIndexes = [];
   if (exact) {
@@ -141,13 +169,6 @@ const collideWithFood = (player) => {
     });
   } else {
     foods.map((food, index) => {
-      const border = {
-        top: food.y,
-        bottom: food.y + size,
-        left: food.x,
-        right: food.x + size,
-      };
-
       const corners = [
         { x: player.x, y: player.y },
         { x: player.x + size, y: player.y },
@@ -155,13 +176,7 @@ const collideWithFood = (player) => {
         { x: player.x + size, y: player.y + size },
       ];
 
-      const valid = corners.some(
-        (item) =>
-          border.top <= item.y &&
-          item.y <= border.bottom &&
-          border.left <= item.x &&
-          item.x <= border.right
-      );
+      const valid = corners.some((item) => touch(food, item, true));
 
       if (valid) {
         foodIndexes.unshift(index);
@@ -203,6 +218,56 @@ const addCell = (player) => {
   player.cells.unshift({ x: player.x, y: player.y });
 };
 
+const checkBorder = (player) => {
+  if (player.x < 0 || player.x > maxX || player.y < 0 || player.y > maxY) {
+    return true;
+  }
+
+  return false;
+};
+
+const checkSuicide = (player) => {
+  const { x, y, cells } = player;
+  let checkCoordinates = [];
+  switch (player.direction) {
+    case 'up':
+      checkCoordinates = [
+        { x, y },
+        { x: x + size, y },
+      ];
+      break;
+    case 'down':
+      checkCoordinates = [
+        { x, y: y + size },
+        { x: x + size, y: y + size },
+      ];
+      break;
+    case 'right':
+      checkCoordinates = [
+        { x: x + size, y },
+        { x: x + size, y: y + size },
+      ];
+      break;
+    case 'left':
+      checkCoordinates = [
+        { x, y },
+        { x, y: y + size },
+      ];
+      break;
+  }
+  const hitCell = cells.find((cell) => {
+    return checkCoordinates.some((coordinate) => touch(cell, coordinate));
+  });
+
+  return !!hitCell;
+};
+
+const killSnake = (player) => {
+  foods.push(...player.cells.filter((_item, index) => index % 5 === 0)); // each 5 cells of dead snake --> 1 food
+  delete backEndPlayers[player.id];
+  _io.emit('dead', { userId: player.id });
+};
+
 const gameTick = () => {
   // implement logic check game over
   const isGameOver = false;
@@ -229,12 +294,20 @@ const gameTick = () => {
     const player = backEndPlayers[id];
     addCell(player);
 
-    // with border
+    // check suicide
+    if (suicide) {
+      const suicideCommitted = checkSuicide(player);
+      if (suicideCommitted) {
+        killSnake(player);
+        continue;
+      }
+    }
+
+    // check border
     if (border) {
-      if (player.x < 0 || player.x > maxX || player.y < 0 || player.y > maxY) {
-        foods.push(...player.cells.filter((_item, index) => index % 5 === 0)); // each 5 cells of dead snake --> 1 food
-        delete backEndPlayers[id];
-        _io.emit('dead', { userId: id });
+      const hitBorder = checkBorder(player);
+      if (hitBorder) {
+        killSnake(player);
         continue;
       }
     }
