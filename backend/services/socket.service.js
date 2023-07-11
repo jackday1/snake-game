@@ -230,8 +230,8 @@ const checkBorder = (player) => {
   return false;
 };
 
-const checkSuicide = (player) => {
-  const { x, y, cells } = player;
+const getCheckCoordinate = (player) => {
+  const { x, y } = player;
   let checkCoordinates = [];
   switch (player.direction) {
     case 'up':
@@ -259,11 +259,37 @@ const checkSuicide = (player) => {
       ];
       break;
   }
+
+  return checkCoordinates;
+};
+
+const checkSuicide = (player) => {
+  const { cells } = player;
+  const checkCoordinates = getCheckCoordinate(player);
   const hitCell = cells.find((cell) => {
     return checkCoordinates.some((coordinate) => touch(cell, coordinate));
   });
 
   return !!hitCell;
+};
+
+const checkCollision = () => {
+  Object.values(backEndPlayers).map((player) => {
+    const checkCoordinates = getCheckCoordinate(player);
+
+    for (const id in backEndPlayers) {
+      const anotherPlayer = backEndPlayers[id];
+      if (anotherPlayer.id === player.id) continue;
+      const hitCell = anotherPlayer.cells.find((cell) =>
+        checkCoordinates.some((coordinate) => touch(cell, coordinate))
+      );
+      if (hitCell) {
+        console.log({ hitCell });
+        killSnake(player);
+        break;
+      }
+    }
+  });
 };
 
 const killSnake = (player) => {
@@ -347,6 +373,11 @@ const gameTick = () => {
     } else {
       player.cells.pop();
     }
+  }
+
+  // check if snakes hit another one
+  if (suicide) {
+    checkCollision();
   }
 
   emitUpdateGameState();
